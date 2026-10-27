@@ -47,6 +47,7 @@ const isWide = (i: number) => i === 0 || (i === list.length - 1 && (list.length 
                     frame={p.frame}
                     image={asset(p.cover)}
                     imageMobile={asset(p.coverMobile)}
+                    imageTablet={asset(p.coverTablet)}
                     alt={tr(p.title, lang)}
                     mock={p.mock}
                     slides={p.frame === 'phone' ? [] : p.gallery.map((g) => asset(g.src)).filter((x): x is NonNullable<typeof x> => !!x)}

@@ -1,6 +1,7 @@
 ---
 /**
- * Mockup perangkat bergaya: browser, HP, atau keduanya bertumpuk.
+ * Mockup perangkat bergaya: browser, HP, keduanya bertumpuk, atau trio (desktop + iPad + HP)
+ * bila screenshot tablet tersedia.
  * Jika screenshot belum ada, tampilkan ilustrasi ScreenMock.
  */
 import { Image } from 'astro:assets';
@@ -19,16 +20,21 @@ interface Props {
   sizes?: string;
   /** Screenshot tambahan: layar browser berganti otomatis seperti beberapa halaman. */
   slides?: ImageMetadata[];
+  /** Screenshot tablet (iPad). Jika ada → mode trio: desktop + iPad + HP. */
+  imageTablet?: ImageMetadata;
 }
-const { frame, image, imageMobile, alt, mock, url = '', placeholderLabel, eager = false, sizes = '(min-width: 64rem) 55vw, 92vw', slides = [] } = Astro.props;
-const pages = image ? [image, ...slides.filter((s) => s !== image)].slice(0, 5) : [];
+const { frame, image, imageMobile, imageTablet, alt, mock, url = '', placeholderLabel, eager = false, sizes = '(min-width: 64rem) 55vw, 92vw', slides = [] } = Astro.props;
+const mode = frame !== 'phone' && image && imageTablet ? 'trio' : frame;
+// Mode trio sudah menampilkan 3 layar → layar desktop tidak perlu berganti-ganti
+const pages = image ? (mode === 'trio' ? [image] : [image, ...slides.filter((s) => s !== image)].slice(0, 5)) : [];
+const showPhone = mode === 'phone' || mode === 'dual' || (mode === 'trio' && !!imageMobile);
 const loading = eager ? 'eager' : 'lazy';
 const phoneMock = mock === 'dashboard' || mock === 'site' || mock === 'calendar' ? 'mobile' : mock;
 ---
 
-<div class:list={['device', `device--${frame}`]}>
+<div class:list={['device', `device--${mode}`, { 'device--no-phone': mode === 'trio' && !imageMobile }]}>
   {
-    frame !== 'phone' && (
+    mode !== 'phone' && (
       <div class="browser">
         <div class="browser__bar" aria-hidden="true">
           <span class="browser__dots"><i /><i /><i /></span>
@@ -61,7 +67,16 @@ const phoneMock = mock === 'dashboard' || mock === 'site' || mock === 'calendar'
     )
   }
   {
-    frame !== 'browser' && (
+    mode === 'trio' && (
+      <div class="tablet">
+        <div class="tablet__screen screen">
+          <Image src={imageTablet!} alt="" widths={[300, 450, 700]} sizes="(min-width: 64rem) 16vw, 32vw" loading={loading} class="screen__img" />
+        </div>
+      </div>
+    )
+  }
+  {
+    showPhone && (
       <div class="phone">
         <div class="phone__screen screen">
           {imageMobile || (frame === 'phone' && image) ? (
@@ -162,6 +177,50 @@ const phoneMock = mock === 'dashboard' || mock === 'site' || mock === 'calendar'
   .device--phone {
     width: min(100%, 19rem);
     margin-inline: auto;
+  }
+
+  /* ---- trio: desktop di belakang, iPad & HP di depan ---- */
+  .tablet {
+    position: relative;
+    aspect-ratio: 820 / 1180;
+    padding: clamp(0.3rem, 0.6vw, 0.5rem);
+    border-radius: clamp(0.9rem, 1.6vw, 1.4rem);
+    background: #0b1222;
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+  .tablet__screen {
+    height: 100%;
+    border-radius: clamp(0.55rem, 1.1vw, 0.9rem);
+  }
+  .device--trio {
+    padding-right: 16%;
+    padding-bottom: 14%;
+  }
+  .device--trio .browser {
+    width: 92%;
+  }
+  .device--trio .tablet {
+    position: absolute;
+    right: 9%;
+    bottom: 0;
+    width: 27%;
+    z-index: 1;
+  }
+  .device--trio .phone {
+    position: absolute;
+    right: 0;
+    bottom: -3%;
+    width: 13%;
+    z-index: 2;
+    padding: clamp(0.2rem, 0.45vw, 0.35rem);
+    border-radius: clamp(0.9rem, 1.8vw, 1.5rem);
+  }
+  .device--trio .phone__screen {
+    border-radius: clamp(0.7rem, 1.4vw, 1.2rem);
+  }
+  .device--trio.device--no-phone .tablet {
+    right: 0;
+    width: 30%;
   }
 
   /* ---- dual: browser + HP bertumpuk ---- */

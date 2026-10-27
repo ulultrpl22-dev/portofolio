@@ -347,8 +347,10 @@ export type Project = {
    * Kosongkan ('') untuk memakai ilustrasi placeholder.
    */
   cover: string;
-  /** Screenshot versi HP (untuk frame 'phone' / 'dual'). Opsional. */
+  /** Screenshot versi HP (untuk frame 'phone' / 'dual' / trio). Opsional. */
   coverMobile?: string;
+  /** Screenshot versi tablet/iPad. Jika diisi, kartu tampil sebagai trio desktop + iPad + HP. */
+  coverTablet?: string;
   /** Gaya ilustrasi placeholder selama belum ada screenshot. */
   mock: 'dashboard' | 'mobile' | 'calendar' | 'site' | 'list';
   title: L;
@@ -373,7 +375,8 @@ export const projects: Project[] = [
     tags: ['Laravel', 'React', 'MySQL', 'REST API', 'VPS'],
     frame: 'dual',
     cover: 'projects/erp-aguna/cover.png',
-    coverMobile: 'projects/mandor-aguna/home.png',
+    coverTablet: 'projects/erp-aguna/tablet.jpg',
+    coverMobile: 'projects/erp-aguna/mobile.jpg',
     mock: 'dashboard',
     title: { en: 'Aguna Internal ERP', id: 'ERP Internal Aguna' },
     client: { en: 'PT Aguna Satya Mulya', id: 'PT Aguna Satya Mulya' },
@@ -469,6 +472,8 @@ export const projects: Project[] = [
     tags: ['Laravel', 'React', 'MySQL', 'Claude AI'],
     frame: 'browser',
     cover: 'projects/myrep/dashboard.png',
+    coverTablet: 'projects/myrep/tablet.jpg',
+    coverMobile: 'projects/myrep/mobile.jpg',
     mock: 'dashboard',
     title: { en: 'MyRep Document Closing', id: 'MyRep Document Closing' },
     client: { en: 'PT Aguna Satya Mulya · FTTH EMR project', id: 'PT Aguna Satya Mulya · Proyek FTTH EMR' },
@@ -522,6 +527,7 @@ export const projects: Project[] = [
     tags: ['Node.js', 'Playwright', 'PostgreSQL', 'Claude AI'],
     frame: 'browser',
     cover: 'projects/ai-scheduler/dashboard.png',
+    coverTablet: 'projects/ai-scheduler/tablet.jpg',
     mock: 'calendar',
     title: { en: 'AI Prompt Scheduler', id: 'Penjadwal Prompt AI' },
     client: { en: 'PT Aguna Satya Mulya', id: 'PT Aguna Satya Mulya' },
@@ -569,6 +575,8 @@ export const projects: Project[] = [
     tags: ['Web Design', 'Frontend'],
     frame: 'browser',
     cover: 'projects/aguna-website/cover.png',
+    coverTablet: 'projects/aguna-website/tablet.jpg',
+    coverMobile: 'projects/aguna-website/mobile.jpg',
     mock: 'site',
     title: { en: 'Company Website Redesign', id: 'Redesign Website Perusahaan' },
     client: { en: 'agunasatyamulya.co.id', id: 'agunasatyamulya.co.id' },
@@ -602,6 +610,8 @@ export const projects: Project[] = [
     tags: ['JavaScript', 'UI/UX', 'Design System'],
     frame: 'browser',
     cover: 'projects/grosir-sembako/cover.png',
+    coverTablet: 'projects/grosir-sembako/tablet.jpg',
+    coverMobile: 'projects/grosir-sembako/mobile.jpg',
     mock: 'dashboard',
     title: { en: 'Wholesale Grocery POS & Bookkeeping', id: 'Kasir & Pembukuan Grosir Sembako' },
     client: { en: 'Prototype', id: 'Prototipe' },
@@ -647,6 +657,8 @@ export const projects: Project[] = [
     tags: ['Laravel', 'PHP', 'MySQL', 'SAW'],
     frame: 'browser',
     cover: 'projects/spk-ormawa/dashboard.png',
+    coverTablet: 'projects/spk-ormawa/tablet.jpg',
+    coverMobile: 'projects/spk-ormawa/mobile.jpg',
     mock: 'list',
     title: { en: 'ORMAWA Decision Support System (SAW)', id: 'Sistem Pendukung Keputusan ORMAWA (SAW)' },
     client: { en: 'Thesis · Politeknik Jambi', id: 'Skripsi · Politeknik Jambi' },
