@@ -7,7 +7,7 @@ import { asset } from '../lib/images';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = useUi(lang);
-const tilts = [-6, 4, -3, 7];
+const tilts = [-5, 3, -2, 5, -4, 2, -3, 4, -2];
 ---
 
 <section class="beyond" id="beyond" aria-labelledby="beyond-title">
@@ -122,10 +122,12 @@ const tilts = [-6, 4, -3, 7];
 
   @media (min-width: 48rem) {
     .polaroids {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.5rem 2rem;
+      max-width: 60rem;
+      margin-inline: auto;
     }
-    .polaroid:nth-child(even) {
+    .polaroid:nth-child(3n + 2) {
       margin-top: 3rem;
     }
     .polaroid {

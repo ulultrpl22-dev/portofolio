@@ -774,6 +774,24 @@ export const beyond = [
     note: { en: 'English-language MC at Politeknik Jambi’s 17th graduation ceremony, 2024.', id: 'MC Bahasa Inggris Wisuda XVII Politeknik Jambi, 2024.' },
   },
   {
+    photo: 'beyond/kahim-wakahim.jpg',
+    emoji: '🧭',
+    title: { en: 'HIMAPEL leadership', id: 'Kahim & Wakahim HIMAPEL' },
+    note: { en: 'Announced as head of the association, 2024/2025.', id: 'Diumumkan sebagai ketua himpunan periode 2024/2025.' },
+  },
+  {
+    photo: 'beyond/lis-2025.jpg',
+    emoji: '🏆',
+    title: { en: 'On stage at LIS 2025', id: 'Panggung LIS 2025' },
+    note: { en: 'Receiving the award at POLJAM Ideacraft 2025 (International UI/UX, 2nd place).', id: 'Menerima penghargaan di POLJAM Ideacraft 2025 (Juara 2 UI/UX Internasional).' },
+  },
+  {
+    photo: 'beyond/penghargaan.jpg',
+    emoji: '🎖️',
+    title: { en: 'Award moment', id: 'Momen penghargaan' },
+    note: { en: 'Receiving a trophy with the team.', id: 'Menerima piala bersama tim.' },
+  },
+  {
     photo: 'beyond/poljam-campaign.jpg',
     emoji: '📸',
     title: { en: 'Face of #POLJAMBISA', id: 'Wajah #POLJAMBISA' },
@@ -784,6 +802,18 @@ export const beyond = [
     emoji: '🌿',
     title: { en: 'PMMBN Jambi', id: 'PMMBN Jambi' },
     note: { en: 'Women’s Empowerment Department, featured on PMMBN Jambi’s official account.', id: 'Departemen Pemberdayaan Perempuan, tampil di akun resmi PMMBN Jambi.' },
+  },
+  {
+    photo: 'beyond/dcti-2026.jpg',
+    emoji: '🖥️',
+    title: { en: 'DCTI-CX 2026', id: 'DCTI-CX 2026' },
+    note: { en: 'Data Center & Cyber tech expo at JICC Senayan, Jakarta.', id: 'Pameran teknologi data center & cyber di JICC Senayan, Jakarta.' },
+  },
+  {
+    photo: 'beyond/odoo.jpg',
+    emoji: '💼',
+    title: { en: 'Odoo event', id: 'Acara Odoo' },
+    note: { en: 'Learning how open-source ERP is rolled out in real businesses.', id: 'Belajar penerapan ERP open-source di bisnis nyata.' },
   },
 ];
 

@@ -155,7 +155,7 @@ const home = localize('/', lang);
         <p class="kicker a" style="--d:0.1s">{String(featured.length + 4).padStart(2, '0')} · {T('Beyond code', 'Di luar kode')}</p>
         <h2 class="big a up" style="--d:0.2s">{T('Off the keyboard', 'Di luar kode')}</h2>
         <ul class="pola" role="list">
-          {beyond.map((b, k) => (
+          {beyond.filter((b) => asset(b.photo)).slice(0, 4).map((b, k) => (
             <li class="a drop" style={`--d:${0.6 + k * 0.25}s;--r:${[-5, 4, -3, 6][k % 4]}deg`}>
               {asset(b.photo) ? <Image src={asset(b.photo)!} alt="" widths={[320, 480]} sizes="22vw" loading="lazy" /> : <span>{b.emoji}</span>}
               <b>{tr(b.title, lang)}</b>
