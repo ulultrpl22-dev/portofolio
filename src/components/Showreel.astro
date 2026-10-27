@@ -1,0 +1,776 @@
+---
+/**
+ * Presentasi ala video: slide layar penuh yang berjalan otomatis.
+ * Kontrol: Spasi = play/pause, ←/→ = mundur/maju, klik sisi kiri/kanan layar, daftar bab, layar penuh.
+ * Semua isi diambil dari src/content/site.ts.
+ */
+import { Image } from 'astro:assets';
+import { site, about, projects, experience, certificates, beyond, type Lang } from '../content/site';
+import { tr, localize } from '../i18n';
+import { asset } from '../lib/images';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const id = lang === 'id';
+const T = (en: string, idText: string) => (id ? idText : en);
+
+const photo = asset(about.photo);
+const featured = projects.filter((p) => p.featured);
+const awards = certificates.filter((c) => c.cat === 'award').length;
+const stars = certificates.filter((c) => c.star && asset(c.img)).slice(0, 6);
+const wall = certificates.filter((c) => asset(c.img)).slice(0, 12);
+const jobs = experience.slice(0, 4);
+
+type Slide = { key: string; chapter: string; dur: number };
+const slides: Slide[] = [
+  { key: 'intro', chapter: T('Hello', 'Halo'), dur: 6000 },
+  { key: 'about', chapter: T('About', 'Tentang'), dur: 7500 },
+  ...featured.map((p, i) => ({ key: `p${i}`, chapter: tr(p.title, lang), dur: 8000 })),
+  { key: 'exp', chapter: T('Experience', 'Pengalaman'), dur: 9000 },
+  { key: 'awards', chapter: T('Recognition', 'Pencapaian'), dur: 8000 },
+  { key: 'beyond', chapter: T('Beyond code', 'Di luar kode'), dur: 7000 },
+  { key: 'end', chapter: T('Let’s talk', 'Ngobrol yuk'), dur: 0 },
+];
+const home = localize('/', lang);
+---
+
+<div class="reel" data-reel data-paused="false">
+  <!-- Bar progres per bab -->
+  <div class="reel__bars" aria-hidden="true">
+    {slides.map((s) => <span class="reel__bar" style={`--dur:${s.dur}ms`}><i /></span>)}
+  </div>
+
+  <header class="reel__top">
+    <a href={home} class="reel__brand">{site.initials} <span>· {T('Portfolio showreel', 'Presentasi portofolio')}</span></a>
+    <div class="reel__tools">
+      <button type="button" class="reel__btn" data-reel-menu aria-label={T('Chapters', 'Daftar bab')} title={T('Chapters', 'Daftar bab')}>☰</button>
+      <button type="button" class="reel__btn" data-reel-fs aria-label={T('Fullscreen', 'Layar penuh')} title={T('Fullscreen', 'Layar penuh')}>⛶</button>
+      <a href={home} class="reel__btn" aria-label={T('Close', 'Tutup')} title={T('Back to portfolio', 'Kembali ke portofolio')}>✕</a>
+    </div>
+  </header>
+
+  <ol class="reel__stage" role="list">
+    <!-- 1. Intro -->
+    <li class="slide slide--intro" data-dur={slides[0].dur} aria-label={slides[0].chapter}>
+      <div class="slide__inner intro">
+        <div class="intro__text">
+          <p class="kicker a" style="--d:0.1s">{T('Portfolio · 2026', 'Portofolio · 2026')}</p>
+          <h1 class="intro__name">
+            <span class="a up" style="--d:0.25s">Ulul</span>
+            <em class="a up" style="--d:0.45s">Nurona</em>
+            <span class="a up" style="--d:0.65s">Bhakti</span>
+          </h1>
+          <p class="intro__role a" style="--d:1s">Software Engineer & System Analyst</p>
+        </div>
+        {photo && (
+          <figure class="intro__photo a zoom" style="--d:0.4s">
+            <Image src={photo} alt={about.photoAlt[lang]} widths={[360, 560]} sizes="40vw" loading="eager" />
+          </figure>
+        )}
+      </div>
+    </li>
+
+    <!-- 2. Tentang -->
+    <li class="slide" data-dur={slides[1].dur} aria-label={slides[1].chapter}>
+      <div class="slide__inner about">
+        <p class="kicker a" style="--d:0.1s">01 · {slides[1].chapter}</p>
+        <p class="about__lead a up" style="--d:0.3s">{tr(about.paragraphs[0], lang)}</p>
+        <ul class="stats" role="list">
+          <li class="a up" style="--d:1.2s"><b data-count={featured.length}>{featured.length}</b><span>{T('projects shipped', 'proyek dibangun')}</span></li>
+          <li class="a up" style="--d:1.45s"><b data-count={certificates.length}>{certificates.length}</b><span>{T('certificates', 'sertifikat')}</span></li>
+          <li class="a up" style="--d:1.7s"><b data-count={awards}>{awards}</b><span>{T('awards & competitions', 'penghargaan & lomba')}</span></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- 3. Proyek -->
+    {
+      featured.map((p, i) => {
+        const shots = [p.cover, ...p.gallery.map((g) => g.src)].filter((s, k, arr) => s && arr.indexOf(s) === k).map((s) => asset(s)).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 3);
+        const phone = p.frame === 'phone';
+        return (
+          <li class="slide" data-dur={slides[2 + i].dur} aria-label={tr(p.title, lang)}>
+            <div class:list={['slide__inner', 'proj', { 'proj--phone': phone }]}>
+              <div class="proj__text">
+                <p class="kicker a" style="--d:0.1s">{String(i + 2).padStart(2, '0')} · {T('Project', 'Proyek')} {i + 1}/{featured.length}</p>
+                <h2 class="proj__title a up" style="--d:0.25s">{tr(p.title, lang)}</h2>
+                <p class="proj__client a" style="--d:0.45s">{tr(p.client, lang)}{!p.year.startsWith('[') && ` · ${p.year}`}</p>
+                <p class="proj__summary a up" style="--d:0.65s">{tr(p.summary, lang)}</p>
+                <ul class="proj__stack" role="list">
+                  {p.stack.filter((s) => !s.startsWith('[')).slice(0, 6).map((s, k) => <li class="a pop" style={`--d:${1 + k * 0.08}s`}>{s}</li>)}
+                </ul>
+              </div>
+              <div class="proj__media a zoom" style="--d:0.3s">
+                {shots.length ? (
+                  shots.map((img, k) => (
+                    <Image src={img} alt="" widths={phone ? [300, 480] : [720, 1100, 1500]} sizes={phone ? '25vw' : '55vw'} loading="lazy" class="proj__shot" style={`--k:${k};--n:${shots.length}`} />
+                  ))
+                ) : (
+                  <div class="proj__empty">{tr(p.title, lang)}</div>
+                )}
+              </div>
+            </div>
+          </li>
+        );
+      })
+    }
+
+    <!-- 4. Pengalaman -->
+    <li class="slide" data-dur={slides[2 + featured.length].dur} aria-label={T('Experience', 'Pengalaman')}>
+      <div class="slide__inner exp">
+        <p class="kicker a" style="--d:0.1s">{String(featured.length + 2).padStart(2, '0')} · {T('Experience', 'Pengalaman')}</p>
+        <h2 class="big a up" style="--d:0.2s">{T('Where I’ve worked', 'Tempat saya berkarya')}</h2>
+        <ol class="tl" role="list">
+          {jobs.map((j, k) => (
+            <li class="a up" style={`--d:${0.7 + k * 0.45}s`}>
+              <span class="tl__when">{tr(j.period, lang)}</span>
+              <b>{tr(j.role, lang)}</b>
+              <span class="tl__org">{j.org}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </li>
+
+    <!-- 5. Pencapaian -->
+    <li class="slide" data-dur={slides[3 + featured.length].dur} aria-label={T('Recognition', 'Pencapaian')}>
+      <div class="slide__inner awards">
+        <div class="awards__text">
+          <p class="kicker a" style="--d:0.1s">{String(featured.length + 3).padStart(2, '0')} · {T('Recognition', 'Pencapaian')}</p>
+          <h2 class="big a up" style="--d:0.2s">{T('Proof on paper', 'Bukti di atas kertas')}</h2>
+          <ul class="awards__list" role="list">
+            {stars.slice(0, 4).map((c, k) => <li class="a up" style={`--d:${0.8 + k * 0.3}s`}><span>{c.year}</span>{tr(c.title, lang)}</li>)}
+          </ul>
+        </div>
+        <div class="wall" aria-hidden="true">
+          {wall.map((c, k) => (
+            <Image src={asset(c.img)!} alt="" widths={[240]} sizes="12vw" loading="lazy" class="wall__img a drop" style={`--d:${0.3 + k * 0.12}s;--r:${((k * 37) % 13) - 6}deg`} />
+          ))}
+        </div>
+      </div>
+    </li>
+
+    <!-- 6. Di luar kode -->
+    <li class="slide" data-dur={slides[4 + featured.length].dur} aria-label={T('Beyond code', 'Di luar kode')}>
+      <div class="slide__inner beyond">
+        <p class="kicker a" style="--d:0.1s">{String(featured.length + 4).padStart(2, '0')} · {T('Beyond code', 'Di luar kode')}</p>
+        <h2 class="big a up" style="--d:0.2s">{T('Off the keyboard', 'Di luar kode')}</h2>
+        <ul class="pola" role="list">
+          {beyond.map((b, k) => (
+            <li class="a drop" style={`--d:${0.6 + k * 0.25}s;--r:${[-5, 4, -3, 6][k % 4]}deg`}>
+              {asset(b.photo) ? <Image src={asset(b.photo)!} alt="" widths={[320, 480]} sizes="22vw" loading="lazy" /> : <span>{b.emoji}</span>}
+              <b>{tr(b.title, lang)}</b>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </li>
+
+    <!-- 7. Penutup -->
+    <li class="slide slide--end" data-dur="0" aria-label={T('Let’s talk', 'Ngobrol yuk')}>
+      <div class="slide__inner end">
+        <p class="kicker a" style="--d:0.1s">{T('Thanks for watching', 'Terima kasih sudah menonton')}</p>
+        <h2 class="end__title a up" style="--d:0.25s">{T('Let’s build something', 'Ayo bangun sesuatu')} <em>{T('together', 'bersama')}</em></h2>
+        <a class="end__mail a up" style="--d:0.6s" href={`mailto:${site.email}`}>{site.email}</a>
+        <div class="end__cta a up" style="--d:0.9s">
+          <a class="cta cta--fill" href={site.links.cv} download>{T('Download CV', 'Unduh CV')} ↓</a>
+          <a class="cta" href={site.links.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a class="cta" href={home}>{T('Open full portfolio', 'Buka portofolio lengkap')} →</a>
+          <button type="button" class="cta" data-reel-replay>↺ {T('Replay', 'Putar ulang')}</button>
+        </div>
+      </div>
+    </li>
+  </ol>
+
+  <!-- Area klik kiri/kanan -->
+  <button type="button" class="reel__tap reel__tap--prev" data-reel-prev aria-label={T('Previous', 'Sebelumnya')}></button>
+  <button type="button" class="reel__tap reel__tap--next" data-reel-next aria-label={T('Next', 'Berikutnya')}></button>
+
+  <footer class="reel__ctrl">
+    <button type="button" class="reel__btn reel__btn--lg" data-reel-prev aria-label={T('Previous', 'Sebelumnya')}>‹</button>
+    <button type="button" class="reel__btn reel__btn--play" data-reel-play aria-label={T('Play / pause', 'Putar / jeda')}>
+      <span class="ico-pause">❚❚</span><span class="ico-play">▶</span>
+    </button>
+    <button type="button" class="reel__btn reel__btn--lg" data-reel-next aria-label={T('Next', 'Berikutnya')}>›</button>
+    <span class="reel__label" data-reel-label>{slides[0].chapter}</span>
+    <span class="reel__count"><b data-reel-index>1</b> / {slides.length}</span>
+  </footer>
+
+  <nav class="reel__menu" data-reel-chapters hidden aria-label={T('Chapters', 'Daftar bab')}>
+    <p>{T('Chapters', 'Daftar bab')}</p>
+    <ol role="list">
+      {slides.map((s, k) => <li><button type="button" data-go={k}><span>{String(k + 1).padStart(2, '0')}</span>{s.chapter}</button></li>)}
+    </ol>
+  </nav>
+</div>
+
+<script>
+  function initReel() {
+    const root = document.querySelector<HTMLElement>('[data-reel]');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const slides = [...root.querySelectorAll<HTMLElement>('.slide')];
+    const bars = [...root.querySelectorAll<HTMLElement>('.reel__bar')];
+    const label = root.querySelector<HTMLElement>('[data-reel-label]')!;
+    const index = root.querySelector<HTMLElement>('[data-reel-index]')!;
+    const menu = root.querySelector<HTMLElement>('[data-reel-chapters]')!;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cur = -1, timer = 0, start = 0, left = 0, paused = false;
+
+    const countUp = (s: HTMLElement) => s.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+      const to = +(el.dataset.count ?? 0); const t0 = performance.now();
+      const step = (t: number) => { const k = Math.min(1, (t - t0 - 1200) / 1200); el.textContent = String(Math.max(0, Math.round(to * (k < 0 ? 0 : 1 - (1 - k) ** 3)))); if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    });
+
+    // Screenshot proyek berganti di dalam slide (seperti b-roll)
+    let shotTimer = 0;
+    const cycleShots = (s: HTMLElement) => {
+      clearInterval(shotTimer);
+      const shots = [...s.querySelectorAll<HTMLElement>('.proj__media:not(:has(.proj__shot:only-child)) .proj__shot')];
+      root.querySelectorAll('.proj__shot.is-on').forEach((el) => el.classList.remove('is-on'));
+      const all = [...s.querySelectorAll<HTMLElement>('.proj__shot')];
+      if (!all.length) return;
+      let k = 0;
+      all[0].classList.add('is-on');
+      if (shots.length < 2) return;
+      shotTimer = window.setInterval(() => {
+        if (paused) return;
+        all[k].classList.remove('is-on');
+        k = (k + 1) % all.length;
+        all[k].classList.add('is-on');
+      }, 2600);
+    };
+    const schedule = (ms: number) => {
+      clearTimeout(timer);
+      if (!ms || paused) return;
+      start = performance.now(); left = ms;
+      timer = window.setTimeout(() => go(cur + 1), ms);
+    };
+    const go = (n: number) => {
+      if (n < 0 || n >= slides.length) return;
+      cur = n;
+      slides.forEach((s, k) => { s.classList.toggle('is-active', k === n); s.classList.toggle('is-past', k < n); });
+      bars.forEach((b, k) => { b.classList.toggle('is-done', k < n); b.classList.remove('is-run'); });
+      void bars[n].offsetWidth; // restart animasi bar
+      bars[n].classList.add('is-run');
+      label.textContent = slides[n].getAttribute('aria-label') ?? '';
+      index.textContent = String(n + 1);
+      countUp(slides[n]);
+      cycleShots(slides[n]);
+      schedule(+(slides[n].dataset.dur ?? 0));
+    };
+    const setPaused = (p: boolean) => {
+      paused = p; root.dataset.paused = String(p);
+      if (p) { clearTimeout(timer); left = Math.max(0, left - (performance.now() - start)); }
+      else if (left) { start = performance.now(); timer = window.setTimeout(() => go(cur + 1), left); }
+    };
+
+    root.querySelectorAll('[data-reel-next]').forEach((b) => b.addEventListener('click', () => go(cur + 1)));
+    root.querySelectorAll('[data-reel-prev]').forEach((b) => b.addEventListener('click', () => go(cur - 1)));
+    root.querySelector('[data-reel-play]')!.addEventListener('click', () => setPaused(!paused));
+    root.querySelector('[data-reel-replay]')!.addEventListener('click', () => { setPaused(false); go(0); });
+    root.querySelector('[data-reel-menu]')!.addEventListener('click', () => { menu.hidden = !menu.hidden; if (!menu.hidden) setPaused(true); });
+    menu.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((b) => b.addEventListener('click', () => { menu.hidden = true; setPaused(false); go(+b.dataset.go!); }));
+    root.querySelector('[data-reel-fs]')!.addEventListener('click', () => { document.fullscreenElement ? document.exitFullscreen() : root.requestFullscreen?.(); });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') go(cur + 1);
+      else if (e.key === 'ArrowLeft') go(cur - 1);
+      else if (e.key === ' ' || e.key === 'k') { e.preventDefault(); setPaused(!paused); }
+      else if (e.key === 'f') root.requestFullscreen?.();
+      else if (e.key === 'Escape') menu.hidden = true;
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && !paused) setPaused(true); });
+    if (reduce) setPaused(true);
+    go(0);
+  }
+  // Jalankan langsung juga: di mode dev skrip bisa termuat setelah event page-load lewat
+  initReel();
+  document.addEventListener('astro:page-load', initReel);
+</script>
+
+<style>
+  .reel {
+    --pad: clamp(1.25rem, 4vw, 3.5rem);
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow: hidden;
+    background:
+      radial-gradient(60% 70% at 85% 20%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%),
+      radial-gradient(50% 60% at 10% 100%, color-mix(in oklab, var(--accent-deco) 18%, transparent), transparent 70%),
+      var(--bg);
+    color: var(--ink);
+  }
+
+  /* ---- bar progres ---- */
+  .reel__bars {
+    position: absolute;
+    top: 0.75rem;
+    left: var(--pad);
+    right: var(--pad);
+    display: flex;
+    gap: 0.3rem;
+    z-index: 5;
+  }
+  .reel__bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--ink) 18%, transparent);
+    overflow: hidden;
+  }
+  .reel__bar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .reel__bar.is-done i { transform: scaleX(1); }
+  .reel__bar.is-run i { animation: bar var(--dur) linear forwards; }
+  .reel__bar.is-run[style*='--dur:0ms'] i { animation: none; transform: scaleX(1); }
+  .reel[data-paused='true'] .reel__bar.is-run i { animation-play-state: paused; }
+  @keyframes bar { to { transform: scaleX(1); } }
+
+  /* ---- atas ---- */
+  .reel__top {
+    position: absolute;
+    top: 1.6rem;
+    left: var(--pad);
+    right: var(--pad);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .reel__brand {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+  }
+  .reel__brand span {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .reel__tools {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .reel__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--surface) 80%, transparent);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--ink);
+    font-size: 0.95rem;
+    transition: background 0.2s, scale 0.3s var(--ease-spring);
+  }
+  .reel__btn:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+    scale: 1.06;
+  }
+  .reel__btn--lg { font-size: 1.4rem; }
+  .reel__btn--play {
+    width: 3.1rem;
+    height: 3.1rem;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.85rem;
+  }
+  .reel__btn--play .ico-play { display: none; }
+  .reel[data-paused='true'] .ico-pause { display: none; }
+  .reel[data-paused='true'] .ico-play { display: inline; }
+
+  /* ---- bawah ---- */
+  .reel__ctrl {
+    position: absolute;
+    left: var(--pad);
+    right: var(--pad);
+    bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    z-index: 5;
+  }
+  .reel__label {
+    margin-left: 0.6rem;
+    font-size: var(--fs-small);
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .reel__count {
+    margin-left: auto;
+    font-size: var(--fs-small);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .reel__count b { color: var(--ink); }
+
+  .reel__tap {
+    position: absolute;
+    top: 5rem;
+    bottom: 5rem;
+    width: 22%;
+    z-index: 3;
+    cursor: w-resize;
+  }
+  .reel__tap--prev { left: 0; }
+  .reel__tap--next { right: 0; cursor: e-resize; }
+
+  /* ---- daftar bab ---- */
+  .reel__menu {
+    position: absolute;
+    top: 4.5rem;
+    right: var(--pad);
+    z-index: 6;
+    width: min(20rem, calc(100vw - 2 * var(--pad)));
+    max-height: calc(100svh - 9rem);
+    overflow: auto;
+    padding: 1rem;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
+  }
+  .reel__menu p {
+    font-size: var(--fs-micro);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.5rem;
+  }
+  .reel__menu ol { padding: 0; }
+  .reel__menu button {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.55rem 0.5rem;
+    border-radius: 0.5rem;
+    text-align: left;
+    font-size: var(--fs-small);
+  }
+  .reel__menu button:hover { background: var(--bg-2); }
+  .reel__menu button span { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  /* ---- panggung & slide ---- */
+  .reel__stage {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 5.5rem var(--pad) 5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s var(--ease-out), visibility 0s 0.6s;
+  }
+  .slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.6s var(--ease-out), visibility 0s;
+    z-index: 2;
+  }
+  .slide__inner {
+    width: min(100%, 76rem);
+  }
+
+  /* animasi masuk: hanya saat slide aktif (dipicu ulang tiap kali tampil) */
+  .a { opacity: 0; }
+  .is-active .a { animation: fade 0.9s var(--ease-out) var(--d, 0s) both; }
+  .is-active .a.up { animation-name: up; }
+  .is-active .a.zoom { animation-name: zoomin; animation-duration: 1.2s; }
+  .is-active .a.pop { animation-name: pop; animation-timing-function: var(--ease-spring); }
+  .is-active .a.drop { animation-name: drop; animation-duration: 0.8s; animation-timing-function: var(--ease-spring); }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes up { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes zoomin { from { opacity: 0; scale: 0.92; } to { opacity: 1; scale: 1; } }
+  @keyframes pop { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }
+  @keyframes drop { from { opacity: 0; translate: 0 -40px; rotate: calc(var(--r, 0deg) * 3); } to { opacity: 1; translate: 0 0; rotate: var(--r, 0deg); } }
+
+  .kicker {
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  .big {
+    font-family: var(--font-serif);
+    font-size: clamp(2.2rem, 5vw, 4.2rem);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  /* intro */
+  .intro {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+    justify-items: center;
+    text-align: center;
+  }
+  .intro__name {
+    display: grid;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(3rem, 10vw, 7.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+  }
+  .intro__name em { color: var(--accent); }
+  .intro__role {
+    margin-top: 1.25rem;
+    font-size: clamp(1rem, 1.6vw, 1.3rem);
+    color: var(--ink-2);
+  }
+  .intro__photo {
+    width: min(60vw, 20rem);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 999px 999px var(--r-lg) var(--r-lg);
+    background: linear-gradient(170deg, #9fc0ff, #3d7bff 55%, #1f4fd8);
+    box-shadow: var(--shadow-lg);
+  }
+  .intro__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+    padding-top: 8%;
+  }
+  .is-active .intro__photo :global(img) { animation: kb 8s ease-out both; }
+  @keyframes kb { from { scale: 1.08; } to { scale: 1; } }
+
+  /* tentang */
+  .about__lead {
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 3.2vw, 2.8rem);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    max-width: 30ch;
+  }
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    padding: 0;
+  }
+  .stats li { display: grid; gap: 0.2rem; }
+  .stats b {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    line-height: 1;
+    color: var(--accent);
+  }
+  .stats span { color: var(--ink-2); font-size: var(--fs-small); }
+
+  /* proyek */
+  .proj {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: center;
+  }
+  .proj__title {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4.2vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+  .proj__client { margin-top: 0.6rem; color: var(--ink-3); font-size: var(--fs-small); }
+  .proj__summary { margin-top: 1rem; color: var(--ink-2); max-width: 46ch; }
+  .proj__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    padding: 0;
+  }
+  .proj__stack li {
+    padding: 0.35em 0.85em;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: var(--fs-micro);
+  }
+  .proj__media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--bg-2);
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
+  }
+  /* screenshot berganti di dalam slide (seperti b-roll) */
+  .proj__shot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    opacity: 0;
+  }
+  .proj__shot { transition: opacity 0.9s var(--ease-out), scale 3.2s ease-out; scale: 1.05; }
+  .proj__shot.is-on { opacity: 1; scale: 1; }
+  .proj--phone .proj__media {
+    aspect-ratio: auto;
+    height: min(62svh, 34rem);
+    width: auto;
+    justify-self: center;
+    background: none;
+    box-shadow: none;
+    overflow: visible;
+    display: flex;
+    gap: 1rem;
+  }
+  .proj--phone .proj__shot {
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: 100%;
+    opacity: 1;
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-lg);
+    animation: none !important;
+  }
+  .proj--phone .proj__shot:nth-child(n + 3) { display: none; }
+  .proj--phone .proj__shot:nth-child(2) { translate: 0 8%; }
+  .proj__empty { display: grid; place-items: center; height: 100%; color: var(--ink-3); }
+
+  /* pengalaman */
+  .tl {
+    display: grid;
+    gap: 1rem;
+    padding: 0 0 0 1.25rem;
+    border-left: 2px solid var(--line);
+  }
+  .tl li { display: grid; gap: 0.1rem; position: relative; }
+  .tl li::before {
+    content: '';
+    position: absolute;
+    left: calc(-1.25rem - 6px);
+    top: 0.35rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .tl__when { font-size: var(--fs-micro); color: var(--accent); letter-spacing: 0.06em; }
+  .tl b { font-family: var(--font-serif); font-weight: 400; font-size: clamp(1.15rem, 2vw, 1.6rem); }
+  .tl__org { color: var(--ink-3); font-size: var(--fs-small); }
+
+  /* pencapaian */
+  .awards {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+  }
+  .awards__list { display: grid; gap: 0.7rem; padding: 0; }
+  .awards__list li { display: grid; grid-template-columns: 3.5rem 1fr; color: var(--ink-2); font-size: var(--fs-small); }
+  .awards__list span { color: var(--accent); }
+  .wall {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+  }
+  .wall__img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1.35;
+    object-fit: cover;
+    border-radius: 0.4rem;
+    background: #fff;
+    box-shadow: var(--shadow-md);
+    rotate: var(--r);
+  }
+
+  /* di luar kode */
+  .pola {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 0;
+  }
+  .pola li {
+    display: grid;
+    gap: 0.4rem;
+    padding: 0.5rem 0.5rem 0.8rem;
+    border-radius: 0.4rem;
+    background: #f4f7fc;
+    color: #0d1526;
+    box-shadow: var(--shadow-lg);
+    rotate: var(--r);
+  }
+  .pola :global(img) { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; object-position: 50% 25%; border-radius: 0.2rem; }
+  .pola b { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 1.05rem; }
+
+  /* penutup */
+  .end { text-align: center; display: grid; justify-items: center; gap: 1.25rem; }
+  .end__title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.4rem, 7vw, 6rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    max-width: 14ch;
+  }
+  .end__title em { color: var(--accent); }
+  .end__mail {
+    font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+    border-bottom: 1px solid var(--accent);
+  }
+  .end__cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: 0.5rem; position: relative; z-index: 4; }
+  .cta {
+    padding: 0.75em 1.3em;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+  }
+  .cta:hover { background: var(--ink); color: var(--bg); }
+  .cta--fill { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+  .slide--end.is-active ~ * { pointer-events: none; }
+
+  @media (min-width: 56rem) {
+    .intro { grid-template-columns: 1.2fr 1fr; text-align: left; justify-items: start; }
+    .intro__photo { justify-self: end; width: min(28vw, 24rem); }
+    .proj { grid-template-columns: 5fr 7fr; }
+    .proj--phone { grid-template-columns: 6fr 5fr; }
+    .awards { grid-template-columns: 5fr 6fr; }
+    .pola { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+    .exp .tl { grid-template-columns: repeat(2, 1fr); gap: 1.5rem 3rem; border-left: 0; padding-left: 0; }
+    .exp .tl li { padding-left: 1.25rem; border-left: 2px solid var(--line); }
+    .exp .tl li::before { left: -6px; }
+  }
+  @media (max-width: 40rem) {
+    .reel__label { display: none; }
+    .reel__brand span { display: none; }
+    .wall { grid-template-columns: repeat(3, 1fr); }
+    .wall__img:nth-child(n + 10) { display: none; }
+    .proj__media { aspect-ratio: 4 / 3; }
+    .proj--phone .proj__media { height: 40svh; }
+    .proj__summary { font-size: var(--fs-small); }
+    .stats b { font-size: 2.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .is-active .a, .is-active .proj__shot, .reel__bar.is-run i { animation: none !important; opacity: 1; }
+  }
+</style>

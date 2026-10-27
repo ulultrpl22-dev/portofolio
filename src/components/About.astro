@@ -1,0 +1,193 @@
+---
+import { Image } from 'astro:assets';
+import { about, site, type Lang } from '../content/site';
+import { tr, useUi } from '../i18n';
+import { asset } from '../lib/images';
+import SectionHead from './SectionHead.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const photo = asset(about.photo);
+const [first, ...rest] = about.paragraphs;
+---
+
+<section class="about" id="about" aria-labelledby="about-title">
+  <div class="container about__grid">
+    <!-- Foto: menempel (pinned) saat teks di sebelahnya di-scroll -->
+    <div class="about__media">
+      <div class="about__pin">
+        <span class="about__glow" aria-hidden="true"></span>
+        <figure class="about__photo" data-reveal="clip" data-parallax-wrap>
+          {
+            photo ? (
+              <Image
+                src={photo}
+                alt={tr(about.photoAlt, lang)}
+                widths={[360, 560, 800]}
+                sizes="(min-width: 64rem) 34vw, 80vw"
+                loading="lazy"
+                data-reveal-inner
+              />
+            ) : (
+              <div class="about__placeholder" role="img" aria-label={tr(about.photoAlt, lang)}>
+                <span class="serif">{site.initials}</span>
+                <small>[ISI: src/assets/profile.jpg]</small>
+              </div>
+            )
+          }
+        </figure>
+        {
+          about.stickers.map((s, i) => (
+            <span class:list={['sticker', 'about__sticker', `about__sticker--${i}`, { 'sticker--paper': i % 2 === 1 }]} style={`--tilt:${i % 2 ? 6 : -7}deg`}>
+              {tr(s, lang)}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="about__text">
+      <SectionHead num="01" label={t.sections.about} title={tr(about.title, lang)} id="about-title" />
+      <p class="about__first serif" data-reveal="lines">{tr(first, lang)}</p>
+      {rest.map((p) => <p class="about__p" data-reveal="lines">{tr(p, lang)}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    padding-block: var(--section-y);
+  }
+  .about__grid {
+    display: grid;
+    gap: clamp(3rem, 6vw, 6rem);
+  }
+  .about__media {
+    position: relative;
+  }
+  .about__pin {
+    position: relative;
+    width: min(100%, 26rem);
+    margin-inline: auto;
+  }
+  .about__glow {
+    position: absolute;
+    inset: 8% -8% -6% 10%;
+    border-radius: 46% 54% 40% 60% / 55% 45% 55% 45%;
+    background: var(--accent-soft);
+    rotate: 8deg;
+    z-index: -1;
+  }
+  :global([data-theme='dark']) .about__glow {
+    background: radial-gradient(circle, rgb(61 123 255 / 0.32), rgb(61 123 255 / 0.08) 50%, transparent 70%);
+  }
+  /* Potret tanpa latar di atas lengkungan bergradasi */
+  .about__photo {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 999px 999px var(--r-lg) var(--r-lg);
+    background:
+      radial-gradient(circle at 50% 35%, rgb(255 255 255 / 0.35), transparent 55%),
+      linear-gradient(170deg, #9fc0ff 0%, #3d7bff 55%, #1f4fd8 100%);
+    box-shadow: var(--shadow-lg);
+  }
+  .about__photo::before {
+    content: '';
+    position: absolute;
+    inset: 12% 10% auto;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px dashed rgb(255 255 255 / 0.35);
+  }
+  .about__photo :global(img) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+    padding-top: 8%;
+    transition: scale 0.8s var(--ease-out);
+    transform-origin: 50% 100%;
+  }
+  .about__photo:hover :global(img) {
+    scale: 1.04;
+  }
+  .about__placeholder {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 30% 25%, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%),
+      var(--surface);
+  }
+  .about__placeholder span {
+    font-size: clamp(4rem, 12vw, 7rem);
+    font-style: italic;
+    color: var(--accent);
+  }
+  .about__placeholder small {
+    font-size: var(--fs-micro);
+    color: var(--ink-3);
+  }
+  .about__sticker {
+    position: absolute;
+  }
+  .about__sticker--0 {
+    left: -4%;
+    bottom: 12%;
+  }
+  .about__sticker--1 {
+    right: -6%;
+    top: 10%;
+  }
+
+  .about__text {
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+  }
+  .about__text :global(.shead) {
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+  }
+  .about__first {
+    font-size: clamp(1.4rem, 2.3vw, 2rem);
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    max-width: 24ch;
+  }
+  .about__p {
+    max-width: 52ch;
+    font-size: clamp(1.0625rem, 1.3vw, 1.2rem);
+    color: var(--ink-2);
+  }
+
+  /* HP/tablet: foto sudah tampil di hero, jangan diulang */
+  @media (max-width: 63.99rem) {
+    .about__media {
+      display: none;
+    }
+  }
+  @media (min-width: 64rem) {
+    .about__grid {
+      grid-template-columns: 5fr 7fr;
+      align-items: start;
+    }
+    .about__pin {
+      position: sticky;
+      top: 7rem;
+      width: 100%;
+    }
+    .about__media {
+      height: 100%;
+    }
+    .about__text {
+      padding-top: 4rem;
+      padding-bottom: 6rem;
+    }
+  }
+</style>

@@ -1,0 +1,454 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import DeviceFrame from './DeviceFrame.astro';
+import ScreenMock from './ScreenMock.astro';
+import Icon from './Icon.astro';
+import { projects, site, type Lang, type Project } from '../content/site';
+import { tr, useUi, localize } from '../i18n';
+import { asset } from '../lib/images';
+
+interface Props { lang: Lang; project: Project }
+const { lang, project: p } = Astro.props;
+const t = useUi(lang);
+const c = t.caseStudy;
+const idx = projects.findIndex((x) => x.slug === p.slug);
+const next = projects[(idx + 1) % projects.length];
+const title = tr(p.title, lang);
+const cover = asset(p.cover);
+const coverPath = cover ? cover.src : undefined;
+
+const chapters = [
+  { key: 'problem', label: c.problem, body: tr(p.problem, lang) },
+  { key: 'role', label: c.myRole, body: tr(p.role, lang) },
+];
+---
+
+<Base lang={lang} title={`${title} — ${site.name}`} description={tr(p.summary, lang)} image={coverPath}>
+  <article class="cs">
+    <!-- ---------- Kepala ---------- -->
+    <header class="cs__head container">
+      <a href={`${localize('/', lang)}#work`} class="cs__back roll" data-cursor="hover">
+        <span class="cs__back-arrow" aria-hidden="true">←</span>
+        <span class="roll__inner" data-text={c.back}>{c.back}</span>
+      </a>
+      <p class="eyebrow" data-reveal="fade">{tr(p.client, lang)} · {p.year}</p>
+      <h1 class="cs__title serif" transition:name={`title-${p.slug}`}>{title}</h1>
+      <p class="lead cs__summary" data-reveal="lines">{tr(p.summary, lang)}</p>
+
+      <dl class="cs__facts" data-reveal="fade">
+        <div>
+          <dt>{c.client}</dt>
+          <dd>{tr(p.client, lang)}</dd>
+        </div>
+        <div>
+          <dt>{c.year}</dt>
+          <dd>{p.year}</dd>
+        </div>
+        <div>
+          <dt>{c.stack}</dt>
+          <dd>{p.stack.join(', ')}</dd>
+        </div>
+        {
+          (p.links.demo || p.links.repo) && (
+            <div>
+              <dt>{c.links}</dt>
+              <dd class="cs__links">
+                {p.links.demo && (
+                  <a href={p.links.demo} target="_blank" rel="noopener" class="cs__ext">
+                    {c.demo} <Icon name="external" />
+                  </a>
+                )}
+                {p.links.repo && (
+                  <a href={p.links.repo} target="_blank" rel="noopener" class="cs__ext">
+                    {c.repo} <Icon name="github" />
+                  </a>
+                )}
+              </dd>
+            </div>
+          )
+        }
+      </dl>
+    </header>
+
+    <!-- ---------- Cover ---------- -->
+    <div class="cs__cover container">
+      <div class="cs__cover-bg" aria-hidden="true"></div>
+      <div class="cs__cover-device" transition:name={`media-${p.slug}`}>
+        <DeviceFrame
+          frame={p.frame}
+          image={cover}
+          imageMobile={asset(p.coverMobile)}
+          alt={title}
+          mock={p.mock}
+          url={p.links.demo?.replace(/^https?:\/\//, '') ?? `${p.slug}.app`}
+          placeholderLabel={c.placeholder}
+          eager
+          sizes="(min-width: 64rem) 80vw, 94vw"
+        />
+      </div>
+    </div>
+
+    <!-- ---------- Bab cerita ---------- -->
+    <div class="cs__body container">
+      {
+        chapters.map((ch, i) => (
+          <section class="cs__chapter">
+            <h2 class="cs__label">
+              <span>0{i + 1}</span>
+              {ch.label}
+            </h2>
+            <p class="cs__text" data-reveal="lines">{ch.body}</p>
+          </section>
+        ))
+      }
+
+      <section class="cs__chapter">
+        <h2 class="cs__label"><span>03</span>{c.process}</h2>
+        <ol class="cs__steps" role="list">
+          {
+            p.process.map((step, i) => (
+              <li data-reveal="fade">
+                <span class="cs__step-num">{String(i + 1).padStart(2, '0')}</span>
+                <p>{tr(step, lang)}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <section class="cs__chapter cs__chapter--wide">
+        <h2 class="cs__label"><span>04</span>{c.solution}</h2>
+        <p class="cs__text cs__text--big serif" data-reveal="lines">{tr(p.solution, lang)}</p>
+        <ul class="cs__stack" role="list" aria-label={c.stack}>
+          {p.stack.map((s) => <li class="chip">{s}</li>)}
+        </ul>
+      </section>
+
+      <section class="cs__chapter">
+        <h2 class="cs__label"><span>05</span>{c.impact}</h2>
+        <ul class="cs__impact" role="list">
+          {
+            p.impact.map((im) => (
+              <li data-reveal="fade">
+                <span aria-hidden="true">✦</span>
+                {tr(im, lang)}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
+
+    <!-- ---------- Galeri ---------- -->
+    {
+      p.gallery.length > 0 && (
+        <section class="cs__gallery container" aria-labelledby="gallery-title">
+          <h2 class="cs__label" id="gallery-title">
+            <span>06</span>
+            {c.gallery}
+          </h2>
+          <div class="cs__grid">
+            {p.gallery.map((g, i) => {
+              const img = asset(g.src);
+              return (
+                <figure class:list={['cs__shot', { 'cs__shot--wide': img && i % 3 === 0 }]} data-reveal="clip">
+                  <div class="cs__shot-frame">
+                    {img ? (
+                      <Image src={img} alt={tr(g.caption, lang)} widths={[480, 800, 1200]} sizes="(min-width: 64rem) 45vw, 92vw" loading="lazy" />
+                    ) : (
+                      <ScreenMock kind={p.mock} label={c.placeholder} />
+                    )}
+                  </div>
+                  <figcaption>{tr(g.caption, lang)}</figcaption>
+                </figure>
+              );
+            })}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- ---------- Proyek berikutnya ---------- -->
+    <nav class="cs__next" aria-label={c.next}>
+      <a href={localize(`/work/${next.slug}`, lang)} class="cs__next-link container" data-cursor-label={t.work.view}>
+        <span class="eyebrow">{c.next}</span>
+        <span class="cs__next-title serif">
+          {tr(next.title, lang)}
+          <Icon name="arrow" class="cs__next-arrow" />
+        </span>
+      </a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .cs {
+    padding-top: clamp(7rem, 14vw, 10rem);
+  }
+  .cs__head {
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+  .cs__back {
+    justify-self: start;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    font-size: var(--fs-small);
+  }
+  .cs__back-arrow {
+    transition: translate 0.4s var(--ease-spring);
+  }
+  .cs__back:hover .cs__back-arrow {
+    translate: -4px 0;
+  }
+  .cs__title {
+    font-size: var(--fs-display);
+    font-weight: 400;
+    line-height: 0.95;
+    max-width: 16ch;
+    text-wrap: balance;
+  }
+  .cs__summary {
+    max-width: 42ch;
+  }
+  .cs__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .cs__facts dt {
+    margin-bottom: 0.35rem;
+    font-size: var(--fs-micro);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .cs__facts dd {
+    margin: 0;
+    font-weight: 500;
+  }
+  .cs__links {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .cs__ext {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent);
+  }
+  .cs__ext :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+  .cs__ext:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  /* cover */
+  .cs__cover {
+    position: relative;
+    margin-block: clamp(3rem, 8vw, 6rem);
+    padding-block: clamp(1.5rem, 5vw, 4rem);
+  }
+  .cs__cover-bg {
+    position: absolute;
+    inset: 0 var(--gutter);
+    border-radius: var(--r-lg);
+    background: var(--bg-2);
+  }
+  :global([data-theme='dark']) .cs__cover-bg {
+    background:
+      radial-gradient(60% 70% at 50% 40%, rgb(61 123 255 / 0.22), transparent 70%),
+      var(--bg-2);
+  }
+  .cs__cover-device {
+    position: relative;
+    width: min(100% - 2rem, 64rem);
+    margin-inline: auto;
+  }
+
+  /* bab */
+  .cs__body {
+    display: grid;
+    gap: clamp(3.5rem, 8vw, 6rem);
+    padding-bottom: var(--section-y);
+  }
+  .cs__chapter {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .cs__label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .cs__label span {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-style: italic;
+    letter-spacing: 0;
+    color: var(--accent);
+  }
+  .cs__text {
+    max-width: 58ch;
+    font-size: clamp(1.0625rem, 1.4vw, 1.25rem);
+    color: var(--ink-2);
+  }
+  .cs__text--big {
+    max-width: 30ch;
+    font-size: clamp(1.6rem, 3vw, 2.5rem);
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .cs__steps {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+    counter-reset: s;
+  }
+  .cs__steps li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  }
+  .cs__step-num {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    line-height: 1.2;
+    color: var(--accent);
+  }
+  .cs__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+  }
+  .cs__impact {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+  }
+  .cs__impact li {
+    display: flex;
+    gap: 1rem;
+    font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+  }
+  .cs__impact li span {
+    color: var(--accent);
+  }
+
+  /* galeri */
+  .cs__gallery {
+    display: grid;
+    gap: 2rem;
+    padding-bottom: var(--section-y);
+  }
+  .cs__grid {
+    display: grid;
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+  .cs__shot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .cs__shot-frame {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-md), inset 0 0 0 1px var(--line);
+  }
+  .cs__shot-frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  .cs__shot figcaption {
+    font-size: var(--fs-small);
+    color: var(--ink-3);
+  }
+
+  /* berikutnya */
+  .cs__next {
+    border-top: 1px solid var(--line);
+  }
+  .cs__next-link {
+    display: grid;
+    gap: 1rem;
+    padding-block: clamp(4rem, 10vw, 8rem);
+  }
+  .cs__next-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--fs-display);
+    line-height: 1;
+    transition: color 0.4s, font-variation-settings 0.6s var(--ease-out);
+  }
+  .cs__next-title :global(.cs__next-arrow) {
+    width: 0.6em;
+    height: 0.6em;
+    flex-shrink: 0;
+    transition: rotate 0.6s var(--ease-spring);
+  }
+  .cs__next-link:hover .cs__next-title {
+    color: var(--accent);
+    font-style: italic;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  }
+  .cs__next-link:hover :global(.cs__next-arrow) {
+    rotate: 45deg;
+  }
+
+  @media (min-width: 64rem) {
+    .cs__head {
+      grid-template-columns: 1fr minmax(0, 24rem);
+      column-gap: 4rem;
+      align-items: end;
+    }
+    .cs__head > :not(.cs__summary) {
+      grid-column: 1 / -1;
+    }
+    .cs__title {
+      grid-column: 1 / 2 !important;
+    }
+    .cs__summary {
+      grid-column: 2;
+      grid-row: 3;
+      margin-bottom: 0.5em;
+    }
+    .cs__chapter {
+      grid-template-columns: 16rem 1fr;
+      gap: 3rem;
+    }
+    .cs__chapter > :not(.cs__label) {
+      grid-column: 2;
+    }
+    .cs__grid {
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+    }
+    .cs__shot--wide {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

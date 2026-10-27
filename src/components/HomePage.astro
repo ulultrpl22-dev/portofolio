@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from './Hero.astro';
+import Marquee from './Marquee.astro';
+import About from './About.astro';
+import Work from './Work.astro';
+import Experience from './Experience.astro';
+import Skills from './Skills.astro';
+import Recognition from './Recognition.astro';
+import Beyond from './Beyond.astro';
+import Contact from './Contact.astro';
+import { type Lang } from '../content/site';
+import { useUi } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+---
+
+<Base lang={lang}>
+  <Hero lang={lang} />
+  <Marquee items={t.marquee} />
+
+  <About lang={lang} />
+  <Work lang={lang} />
+
+  <Experience lang={lang} />
+  <Skills lang={lang} />
+  <Recognition lang={lang} />
+  <Beyond lang={lang} />
+  <Contact lang={lang} />
+</Base>

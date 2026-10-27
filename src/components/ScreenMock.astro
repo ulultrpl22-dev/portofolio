@@ -1,0 +1,532 @@
+---
+/**
+ * Ilustrasi antarmuka abstrak — dipakai selama screenshot asli belum ada.
+ * Semua ukuran memakai `em` yang diskalakan dari lebar layar (container query),
+ * jadi tetap proporsional di frame sebesar apa pun.
+ */
+interface Props { kind: 'dashboard' | 'mobile' | 'calendar' | 'site' | 'list'; label?: string }
+const { kind, label } = Astro.props;
+const bars = [38, 62, 48, 80, 55, 92, 70, 84, 60, 96, 74, 88];
+const rows = [0, 1, 2, 3, 4];
+---
+
+<div class:list={['mock', `mock--${kind}`]} aria-hidden="true">
+  <div class="mock__inner">
+    {
+      kind === 'dashboard' && (
+        <div class="dash">
+          <aside class="dash__side">
+            <span class="dot dot--accent" />
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <span class:list={['ln', { 'ln--active': i === 1 }]} style={`width:${[70, 85, 60, 75, 55, 65][i]}%`} />
+            ))}
+          </aside>
+          <div class="dash__main">
+            <div class="dash__top">
+              <span class="ln ln--h" style="width:30%" />
+              <span class="dot" />
+            </div>
+            <div class="dash__kpis">
+              {[0, 1, 2].map((i) => (
+                <div class="card">
+                  <span class="ln ln--xs" style="width:45%" />
+                  <span class="ln ln--num" style={`width:${[55, 40, 62][i]}%`} />
+                  <span class:list={['pill', { 'pill--accent': i === 0 }]} />
+                </div>
+              ))}
+            </div>
+            <div class="card dash__chart">
+              <span class="ln ln--xs" style="width:25%" />
+              <div class="bars">
+                {bars.map((h, i) => (
+                  <span style={`height:${h}%`} class:list={{ hi: i === 9 }} />
+                ))}
+              </div>
+            </div>
+            <div class="card dash__table">
+              {rows.slice(0, 4).map((r) => (
+                <div class="row">
+                  <span class="ln" style={`width:${[40, 55, 35, 48][r]}%`} />
+                  <span class="ln ln--muted" style="width:18%" />
+                  <span class:list={['pill', { 'pill--accent': r % 2 === 0 }]} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      kind === 'mobile' && (
+        <div class="app">
+          <div class="app__head">
+            <span class="ln ln--xs" style="width:35%" />
+            <span class="ln ln--h" style="width:70%" />
+          </div>
+          <div class="card card--accent app__status">
+            <span class="ln ln--xs ln--inv" style="width:40%" />
+            <span class="ln ln--num ln--inv" style="width:60%" />
+            <span class="progress"><span /></span>
+          </div>
+          {rows.slice(0, 4).map((r) => (
+            <div class="card app__item">
+              <span class:list={['check', { 'check--on': r < 2 }]} />
+              <span class="stack">
+                <span class="ln" style={`width:${[70, 55, 80, 60][r]}%`} />
+                <span class="ln ln--muted ln--xs" style="width:40%" />
+              </span>
+            </div>
+          ))}
+          <div class="app__tabs">
+            {[0, 1, 2, 3].map((i) => <span class:list={['dot', { 'dot--accent': i === 0 }]} />)}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      kind === 'calendar' && (
+        <div class="cal">
+          <div class="cal__top">
+            <span class="ln ln--h" style="width:28%" />
+            <span class="ai">✦ <span class="ln ln--inv" style="width:4.5em" /></span>
+          </div>
+          <div class="cal__grid">
+            {[0, 1, 2, 3, 4].map((d) => (
+              <div class="cal__day">
+                <span class="ln ln--xs ln--muted" style="width:50%" />
+                {[
+                  [8, 18],
+                  [34, 14],
+                  [58, 22],
+                ].map(([top, h], i) => (
+                  <span
+                    class:list={['evt', { 'evt--accent': (d + i) % 3 === 0, 'evt--ai': d === 2 && i === 1 }]}
+                    style={`top:${top + ((d * 7 + i * 5) % 12)}%;height:${h}%`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      kind === 'site' && (
+        <div class="site">
+          <div class="site__nav">
+            <span class="dot dot--accent" />
+            <span class="ln ln--muted" style="width:8%" />
+            <span class="ln ln--muted" style="width:8%" />
+            <span class="ln ln--muted" style="width:8%" />
+            <span class="pill pill--accent" />
+          </div>
+          <div class="site__hero">
+            <div class="stack">
+              <span class="ln ln--xs" style="width:30%" />
+              <span class="ln ln--big" style="width:95%" />
+              <span class="ln ln--big" style="width:70%" />
+              <span class="ln ln--muted" style="width:80%" />
+              <span class="pill pill--accent pill--lg" />
+            </div>
+            <div class="site__img" />
+          </div>
+          <div class="site__cards">
+            {[0, 1, 2].map(() => (
+              <div class="card">
+                <span class="dot" />
+                <span class="ln" style="width:60%" />
+                <span class="ln ln--muted ln--xs" style="width:85%" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      kind === 'list' && (
+        <div class="list">
+          <div class="list__top">
+            <span class="ln ln--h" style="width:30%" />
+            <span class="pill pill--accent pill--lg" />
+          </div>
+          <div class="list__filters">
+            {[0, 1, 2, 3].map((i) => <span class:list={['pill', { 'pill--accent': i === 0 }]} />)}
+          </div>
+          <div class="card list__table">
+            {rows.map((r) => (
+              <div class="row">
+                <span class="dot" />
+                <span class="ln" style={`width:${[38, 50, 30, 44, 36][r]}%`} />
+                <span class="ln ln--muted" style="width:16%" />
+                <span class:list={['pill', { 'pill--accent': r === 1 || r === 3 }]} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+  </div>
+  {label && <span class="mock__label">{label}</span>}
+</div>
+
+<style>
+  .mock {
+    container-type: inline-size;
+    contain: strict;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    --m-line: color-mix(in oklab, var(--ink) 16%, transparent);
+    --m-line-strong: color-mix(in oklab, var(--ink) 55%, transparent);
+    --m-card: var(--surface);
+  }
+  .mock__inner {
+    font-size: 2.2cqi;
+    height: 100%;
+    padding: 1.2em;
+    transition: transform 2.5s var(--ease-out);
+  }
+  .mock--mobile .mock__inner {
+    font-size: 5.2cqi;
+  }
+  .mock__label {
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    translate: -50% 0;
+    padding: 0.4em 0.9em;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: max(10px, 2.2cqi);
+    white-space: nowrap;
+    opacity: 0.85;
+  }
+  .mock--mobile .mock__label {
+    font-size: max(9px, 4.4cqi);
+  }
+
+  /* ---- primitif ---- */
+  .ln {
+    display: block;
+    height: 0.55em;
+    border-radius: 1em;
+    background: var(--m-line-strong);
+  }
+  .ln--muted {
+    background: var(--m-line);
+  }
+  .ln--xs {
+    height: 0.4em;
+    background: var(--m-line);
+  }
+  .ln--h {
+    height: 0.9em;
+  }
+  .ln--num {
+    height: 1.3em;
+    background: var(--ink);
+  }
+  .ln--big {
+    height: 1.9em;
+    background: var(--ink);
+  }
+  .ln--inv {
+    background: color-mix(in oklab, var(--on-accent) 75%, transparent);
+  }
+  .ln--active {
+    background: var(--accent);
+  }
+  .dot {
+    display: block;
+    width: 1.4em;
+    height: 1.4em;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--m-line);
+  }
+  .dot--accent {
+    background: var(--accent);
+  }
+  .pill {
+    display: block;
+    width: 3.5em;
+    height: 1.2em;
+    flex-shrink: 0;
+    border-radius: 1em;
+    background: var(--m-line);
+  }
+  .pill--accent {
+    background: color-mix(in oklab, var(--accent) 80%, transparent);
+  }
+  .pill--lg {
+    width: 6em;
+    height: 1.8em;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    min-width: 0;
+    padding: 0.9em;
+    border-radius: 0.8em;
+    background: var(--m-card);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .card--accent {
+    background: var(--accent);
+    box-shadow: none;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55em;
+    flex: 1;
+    min-width: 0;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    padding-block: 0.55em;
+    border-bottom: 1px solid var(--line);
+  }
+  .row .ln:first-of-type {
+    flex: 0 0 auto;
+  }
+  .row .pill {
+    margin-left: auto;
+  }
+
+  /* ---- dashboard ERP ---- */
+  .dash {
+    display: flex;
+    gap: 1.2em;
+    height: 100%;
+  }
+  .dash__side {
+    flex: 0 0 18%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1em;
+    padding: 1em;
+    border-radius: 0.8em;
+    background: var(--m-card);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .dash__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    min-width: 0;
+    min-height: 0;
+  }
+  .dash__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dash__kpis {
+    display: flex;
+    gap: 1em;
+  }
+  .dash__kpis > .card {
+    flex: 1;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.7em;
+    flex: 1;
+    min-height: 5em;
+  }
+  .bars span {
+    flex: 1;
+    border-radius: 0.3em 0.3em 0 0;
+    background: var(--m-line);
+  }
+  .bars span.hi {
+    background: var(--accent);
+  }
+  .dash__chart {
+    flex: 1 0 7.5em;
+  }
+  .dash__table .row:last-child {
+    border: 0;
+  }
+
+  /* ---- app HP ---- */
+  .app {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+    height: 100%;
+    padding-top: 1.6em;
+  }
+  .app__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    margin-bottom: 0.4em;
+  }
+  .progress {
+    display: block;
+    height: 0.45em;
+    border-radius: 1em;
+    background: color-mix(in oklab, var(--on-accent) 30%, transparent);
+  }
+  .progress span {
+    display: block;
+    width: 62%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--on-accent);
+  }
+  .app__item {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+  }
+  .check {
+    width: 1.3em;
+    height: 1.3em;
+    flex-shrink: 0;
+    border-radius: 0.4em;
+    box-shadow: inset 0 0 0 2px var(--m-line-strong);
+  }
+  .check--on {
+    background: var(--accent);
+    box-shadow: none;
+  }
+  .app__tabs {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    bottom: 3%;
+    display: flex;
+    justify-content: space-around;
+    padding: 0.9em;
+    border-radius: 1.2em;
+    background: var(--m-card);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+
+  /* ---- kalender AI ---- */
+  .cal {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2em;
+    height: 100%;
+  }
+  .cal__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ai {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.6em 1em;
+    border-radius: 1em;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 1em;
+    line-height: 1;
+  }
+  .cal__grid {
+    display: flex;
+    flex: 1;
+    gap: 0.8em;
+  }
+  .cal__day {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    padding: 0.8em;
+    border-radius: 0.8em;
+    background: var(--m-card);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .evt {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    border-radius: 0.5em;
+    background: var(--m-line);
+  }
+  .evt--accent {
+    background: color-mix(in oklab, var(--accent) 35%, transparent);
+    box-shadow: inset 0.25em 0 0 var(--accent);
+  }
+  .evt--ai {
+    background: var(--accent);
+    box-shadow: 0 0 0 0.25em color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+
+  /* ---- website ---- */
+  .site {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6em;
+  }
+  .site__nav {
+    display: flex;
+    align-items: center;
+    gap: 1.4em;
+  }
+  .site__nav .pill {
+    margin-left: auto;
+  }
+  .site__hero {
+    display: flex;
+    gap: 2em;
+    align-items: center;
+  }
+  .site__hero .stack {
+    flex: 1.2;
+  }
+  .site__hero .stack {
+    gap: 0.9em;
+  }
+  .site__img {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: 42% 58% 55% 45% / 50% 45% 55% 50%;
+    background:
+      radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--accent) 70%, white), var(--accent));
+  }
+  .site__cards {
+    display: flex;
+    gap: 1em;
+  }
+  .site__cards > .card {
+    flex: 1;
+  }
+
+  /* ---- daftar pesanan ---- */
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2em;
+  }
+  .list__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .list__filters {
+    display: flex;
+    gap: 0.6em;
+  }
+  .list__table .row:last-child {
+    border: 0;
+  }
+</style>

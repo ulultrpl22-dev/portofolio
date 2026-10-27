@@ -1,0 +1,256 @@
+---
+/**
+ * Mockup perangkat bergaya: browser, HP, atau keduanya bertumpuk.
+ * Jika screenshot belum ada, tampilkan ilustrasi ScreenMock.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import ScreenMock from './ScreenMock.astro';
+
+interface Props {
+  frame: 'browser' | 'phone' | 'dual';
+  image?: ImageMetadata;
+  imageMobile?: ImageMetadata;
+  alt: string;
+  mock: 'dashboard' | 'mobile' | 'calendar' | 'site' | 'list';
+  url?: string;
+  placeholderLabel?: string;
+  eager?: boolean;
+  sizes?: string;
+  /** Screenshot tambahan: layar browser berganti otomatis seperti beberapa halaman. */
+  slides?: ImageMetadata[];
+}
+const { frame, image, imageMobile, alt, mock, url = '', placeholderLabel, eager = false, sizes = '(min-width: 64rem) 55vw, 92vw', slides = [] } = Astro.props;
+const pages = image ? [image, ...slides.filter((s) => s !== image)].slice(0, 5) : [];
+const loading = eager ? 'eager' : 'lazy';
+const phoneMock = mock === 'dashboard' || mock === 'site' || mock === 'calendar' ? 'mobile' : mock;
+---
+
+<div class:list={['device', `device--${frame}`]}>
+  {
+    frame !== 'phone' && (
+      <div class="browser">
+        <div class="browser__bar" aria-hidden="true">
+          <span class="browser__dots"><i /><i /><i /></span>
+          <span class="browser__url">{url}</span>
+        </div>
+        <div class="browser__screen screen" data-slides={pages.length > 1 ? '' : undefined}>
+          {pages.length ? (
+            pages.map((img, i) => (
+              <Image
+                src={img}
+                alt={i === 0 ? alt : ''}
+                widths={[640, 960, 1400, 1920]}
+                sizes={sizes}
+                loading={i === 0 ? loading : 'lazy'}
+                class:list={['screen__img', { 'screen__slide': pages.length > 1, 'is-active': i === 0 }]}
+              />
+            ))
+          ) : (
+            <ScreenMock kind={mock} label={placeholderLabel} />
+          )}
+          {pages.length > 1 && (
+            <span class="slide-dots">
+              {pages.map((_, i) => (
+                <button type="button" class:list={['slide-dot', { 'is-active': i === 0 }]} aria-label={`${i + 1} / ${pages.length}`} data-slide-to={i} />
+              ))}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+  {
+    frame !== 'browser' && (
+      <div class="phone">
+        <div class="phone__screen screen">
+          {imageMobile || (frame === 'phone' && image) ? (
+            <Image
+              src={(imageMobile ?? image)!}
+              alt={frame === 'phone' ? alt : ''}
+              widths={[320, 480, 720]}
+              sizes="(min-width: 64rem) 18vw, 40vw"
+              loading={loading}
+              class="screen__img"
+            />
+          ) : (
+            <ScreenMock kind={frame === 'phone' ? mock : phoneMock} label={frame === 'phone' ? placeholderLabel : undefined} />
+          )}
+        </div>
+        <span class="phone__notch" aria-hidden="true" />
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .device {
+    position: relative;
+    width: 100%;
+  }
+
+  /* ---- browser ---- */
+  .browser {
+    position: relative;
+    border-radius: clamp(0.75rem, 1.6vw, 1.25rem);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .browser__bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: clamp(1.75rem, 3vw, 2.4rem);
+    padding-inline: 0.9rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .browser__dots {
+    display: flex;
+    gap: 0.35rem;
+  }
+  .browser__dots i {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--line);
+  }
+  .browser__dots i:first-child {
+    background: var(--accent);
+  }
+  .browser__url {
+    flex: 1;
+    max-width: 60%;
+    margin-inline: auto;
+    padding: 0.2rem 0.8rem;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--ink-3);
+    font-size: 0.6875rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .browser__screen {
+    aspect-ratio: 16 / 10;
+  }
+
+  /* ---- phone ---- */
+  .phone {
+    position: relative;
+    aspect-ratio: 9 / 19;
+    padding: clamp(0.35rem, 0.8vw, 0.6rem);
+    border-radius: clamp(1.5rem, 3vw, 2.6rem);
+    background: var(--ink);
+    box-shadow: var(--shadow-lg);
+  }
+  .phone__screen {
+    height: 100%;
+    border-radius: clamp(1.15rem, 2.4vw, 2.1rem);
+  }
+  .phone__notch {
+    position: absolute;
+    top: 3.2%;
+    left: 50%;
+    width: 28%;
+    height: 2.6%;
+    translate: -50% 0;
+    border-radius: 999px;
+    background: var(--ink);
+  }
+  .device--phone {
+    width: min(100%, 19rem);
+    margin-inline: auto;
+  }
+
+  /* ---- dual: browser + HP bertumpuk ---- */
+  .device--dual {
+    padding-right: 10%;
+    padding-bottom: 8%;
+  }
+  .device--dual .phone {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 24%;
+    rotate: 0deg;
+  }
+
+  .screen {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  /* ---- slideshow beberapa halaman ---- */
+  .screen :global(.screen__slide) {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s var(--ease-out), object-position 3s var(--ease-out);
+  }
+  .screen :global(.screen__slide.is-active) {
+    opacity: 1;
+  }
+  .slide-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 0.6rem;
+    translate: -50% 0;
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 999px;
+    background: rgb(10 18 32 / 0.55);
+    z-index: 2;
+  }
+  .slide-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.45);
+    transition: width 0.3s var(--ease-out), background 0.3s;
+  }
+  .slide-dot.is-active {
+    width: 1.2rem;
+    background: #fff;
+  }
+  .screen :global(.screen__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    transition: object-position 3s var(--ease-out);
+  }
+</style>
+
+<script>
+  // Ganti halaman tiap 3,5 detik saat terlihat di layar; klik titik untuk lompat; berhenti saat disorot.
+  function initSlides() {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll<HTMLElement>('[data-slides]:not([data-ready])').forEach((box) => {
+      box.dataset.ready = '1';
+      const imgs = [...box.querySelectorAll<HTMLElement>('.screen__slide')];
+      const dots = [...box.querySelectorAll<HTMLElement>('.slide-dot')];
+      let i = 0, timer = 0, visible = false, hover = false;
+      const show = (n: number) => {
+        i = (n + imgs.length) % imgs.length;
+        imgs.forEach((im, k) => im.classList.toggle('is-active', k === i));
+        dots.forEach((d, k) => d.classList.toggle('is-active', k === i));
+      };
+      const tick = () => {
+        clearTimeout(timer);
+        if (reduce || !visible || hover) return;
+        timer = window.setTimeout(() => { show(i + 1); tick(); }, 3500);
+      };
+      dots.forEach((d, k) => d.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); show(k); tick(); }));
+      const host = box.closest('a') ?? box;
+      host.addEventListener('pointerenter', () => { hover = true; tick(); });
+      host.addEventListener('pointerleave', () => { hover = false; tick(); });
+      new IntersectionObserver(([en]) => { visible = en.isIntersecting; tick(); }, { threshold: 0.3 }).observe(box);
+    });
+  }
+  // Jalankan langsung juga: di mode dev skrip bisa termuat setelah event page-load lewat
+  initSlides();
+  document.addEventListener('astro:page-load', initSlides);
+</script>

@@ -1,0 +1,509 @@
+---
+import { site, type Lang } from '../content/site';
+import { useUi, localize } from '../i18n';
+import Icon from './Icon.astro';
+import { Image } from 'astro:assets';
+import { about } from '../content/site';
+import { asset } from '../lib/images';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const [first, middle, last] = site.name.split(' ');
+const split = (word: string) => word.split('');
+const sticker = t.hero.sticker;
+const photo = asset(about.photo);
+---
+
+<section class="hero" data-hero aria-labelledby="hero-name">
+  <!-- Lapisan dekoratif: bergerak mengikuti mouse (desktop) / otomatis pelan (HP) -->
+  <div class="hero__deco" aria-hidden="true">
+    <span class="hero__blob" data-depth="0.6" data-spot></span>
+    <span class="hero__ring" data-depth="-0.3"></span>
+  </div>
+
+  <div class="hero__inner container">
+    <div class="hero__top">
+      <p class="eyebrow">{t.hero.eyebrow}</p>
+      <p class="hero__role" data-hero-fade>
+        <span class="hero__role-dot" aria-hidden="true"></span>{t.hero.role}
+      </p>
+    </div>
+
+    <h1 class="hero__name" id="hero-name">
+      <span class="sr-only">{site.name}</span>
+      <span class="hero__line hero__line--1" aria-hidden="true">
+        {split(first).map((c) => <span class="char">{c}</span>)}
+      </span>
+      <span class="hero__line hero__line--2" aria-hidden="true">
+        {split(middle).map((c) => <span class="char">{c}</span>)}
+      </span>
+      <span class="hero__line hero__line--3" aria-hidden="true">
+        <span class="hero__outline">{split(last).map((c) => <span class="char">{c}</span>)}</span>
+        <span class="hero__fill" data-spot-fill>{split(last).map((c) => <span class="char">{c}</span>)}</span>
+      </span>
+    </h1>
+
+    {
+      photo && (
+        <figure class="hero__photo">
+          <Image src={photo} alt={about.photoAlt[lang]} widths={[320, 480, 720]} sizes="(min-width: 64rem) 24vw, 60vw" loading="eager" fetchpriority="high" />
+        </figure>
+      )
+    }
+
+    <div class="hero__bottom">
+      <p class="lead hero__lead">{t.hero.lead}</p>
+
+      <div class="hero__actions">
+        <a href={`${localize('/', lang)}#work`} class="btn btn--accent" data-magnetic data-cursor="hover">
+          {t.hero.ctaWork}
+          <Icon name="arrow" class="btn__icon" />
+        </a>
+        <a href={localize('/showreel', lang)} class="btn btn--ghost hero__play" data-magnetic data-cursor="hover">
+          <span class="hero__play-ico" aria-hidden="true">▶</span>
+          {lang === 'id' ? 'Tonton presentasi' : 'Watch showreel'}
+        </a>
+        <a href={site.links.cv} class="btn btn--ghost" download data-icon="down" data-magnetic data-cursor="hover">
+          {t.hero.ctaCv}
+          <Icon name="download" class="btn__icon" />
+        </a>
+        <div class="hero__social">
+          {site.links.github && (
+            <a class="icon-btn" href={site.links.github} target="_blank" rel="noopener" aria-label="GitHub" data-magnetic data-cursor="hover">
+              <Icon name="github" />
+            </a>
+          )}
+          <a class="icon-btn" href={site.links.linkedin} target="_blank" rel="noopener" aria-label="LinkedIn" data-magnetic data-cursor="hover">
+            <Icon name="linkedin" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <a class="hero__scroll" href="#about" aria-label={t.hero.scroll}>
+      <span>{t.hero.scroll}</span>
+      <span class="hero__scroll-line" aria-hidden="true"></span>
+    </a>
+  </div>
+</section>
+
+<style>
+  @property --fx {
+    syntax: '<length-percentage>';
+    inherits: false;
+    initial-value: 60%;
+  }
+  @property --fy {
+    syntax: '<length-percentage>';
+    inherits: false;
+    initial-value: 50%;
+  }
+  .hero {
+    --mx: 70vw;
+    --my: 75svh;
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: stretch;
+    padding-top: clamp(5.5rem, 12vh, 8rem);
+    padding-bottom: 2rem;
+    overflow: clip;
+    isolation: isolate;
+  }
+  .hero__inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.25rem, 3vh, 2.5rem);
+  }
+
+  /* ---- dekorasi berlapis ---- */
+  .hero__deco {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .hero__deco > span {
+    position: absolute;
+    will-change: transform;
+  }
+  .hero__blob {
+    width: clamp(16rem, 48vw, 40rem);
+    aspect-ratio: 1;
+    left: 0;
+    top: 0;
+    /* transform saja (tanpa layout) — posisi dari --mx/--my */
+    translate: calc(var(--mx) - 50%) calc(var(--my) - 50%);
+    background: radial-gradient(circle at 30% 30%, var(--accent-soft) 0%, color-mix(in oklab, var(--accent-soft) 55%, var(--accent-deco)) 100%);
+    border-radius: 42% 58% 63% 37% / 45% 40% 60% 55%;
+    box-shadow: inset -30px -40px 80px -20px rgb(31 79 216 / 0.25);
+  }
+  :global([data-theme='dark']) .hero__blob {
+    background: radial-gradient(circle at 50% 50%, rgb(61 123 255 / 0.42), rgb(61 123 255 / 0.12) 45%, rgb(61 123 255 / 0) 70%);
+    box-shadow: none;
+  }
+  .hero__ring {
+    width: clamp(10rem, 26vw, 22rem);
+    aspect-ratio: 1;
+    left: 6%;
+    top: 14%;
+    border-radius: 50%;
+    border: 1.5px dashed var(--line);
+  }
+  /* Perangkat sentuh: blob & lampu sorot bergerak sendiri via CSS (tanpa JS per frame) */
+  .hero.hero--auto .hero__blob {
+    animation: blob-wander 18s ease-in-out infinite alternate;
+  }
+  .hero.hero--auto .hero__fill {
+    animation: spot-wander 9s ease-in-out infinite alternate;
+  }
+  @keyframes blob-wander {
+    0% { translate: calc(30vw - 50%) calc(45svh - 50%); }
+    50% { translate: calc(75vw - 50%) calc(62svh - 50%); }
+    100% { translate: calc(45vw - 50%) calc(38svh - 50%); }
+  }
+  @keyframes spot-wander {
+    0% { --fx: 5%; --fy: 40%; }
+    50% { --fx: 70%; --fy: 60%; }
+    100% { --fx: 100%; --fy: 45%; }
+  }
+  @keyframes morph {
+    0% { border-radius: 42% 58% 63% 37% / 45% 40% 60% 55%; }
+    50% { border-radius: 60% 40% 35% 65% / 55% 60% 40% 45%; }
+    100% { border-radius: 38% 62% 50% 50% / 62% 38% 62% 38%; }
+  }
+
+  /* ---- atas ---- */
+  .hero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+  }
+  .hero__role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    font-weight: 500;
+  }
+  .hero__role-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: #3f9b5d;
+    box-shadow: 0 0 0 0 rgb(63 155 93 / 0.5);
+    animation: ping 2.2s var(--ease-out) infinite;
+  }
+  @keyframes ping {
+    70%, 100% { box-shadow: 0 0 0 10px rgb(63 155 93 / 0); }
+  }
+
+  /* ---- nama raksasa ---- */
+  .hero__name {
+    font-family: var(--font-serif);
+    font-weight: 380;
+    font-size: var(--fs-mega);
+    line-height: 0.84;
+    letter-spacing: -0.045em;
+    font-variation-settings: 'SOFT' 30, 'WONK' 0, 'opsz' 144;
+    margin-block: auto;
+    padding-block: 0.04em 0.12em;
+  }
+  .hero__line {
+    display: block;
+    white-space: nowrap;
+  }
+  .hero__line--2 {
+    padding-left: 0.6em;
+    font-style: italic;
+    font-weight: 300;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 144;
+    color: var(--accent);
+  }
+  .hero__line--3 {
+    position: relative;
+    display: inline-block;
+    padding-left: 0.15em;
+    font-weight: 600;
+  }
+  .char {
+    display: inline-block;
+    transition: font-variation-settings 0.6s var(--ease-out), translate 0.6s var(--ease-spring), rotate 0.6s var(--ease-spring);
+  }
+  @media (hover: hover) {
+    .hero__line--1 .char:hover,
+    .hero__line--3 .char:hover {
+      font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 144;
+      translate: 0 -0.04em;
+      rotate: -3deg;
+    }
+  }
+  /* Kata terakhir: outline, terisi warna di area "lampu sorot" */
+  .hero__outline {
+    color: transparent;
+    -webkit-text-stroke: max(1.5px, 0.012em) var(--ink);
+  }
+  .hero__fill {
+    position: absolute;
+    inset: 0;
+    padding-left: inherit;
+    color: var(--ink);
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(circle clamp(7rem, 22vw, 18rem) at var(--fx, 60%) var(--fy, 50%), #000 55%, transparent 72%);
+    mask-image: radial-gradient(circle clamp(7rem, 22vw, 18rem) at var(--fx, 60%) var(--fy, 50%), #000 55%, transparent 72%);
+  }
+
+  /* ---- bawah ---- */
+  .hero__bottom {
+    display: grid;
+    gap: 1.5rem;
+    align-items: end;
+  }
+  .hero__lead {
+    max-width: 30ch;
+    color: var(--ink);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero__social {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* Foto profil di hero: potret tanpa latar di atas lengkungan bergradasi */
+  .hero__photo {
+    position: relative;
+    width: min(70%, 17rem);
+    aspect-ratio: 4 / 5;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 999px 999px var(--r-lg) var(--r-lg);
+    background:
+      radial-gradient(circle at 50% 35%, rgb(255 255 255 / 0.35), transparent 55%),
+      linear-gradient(170deg, #9fc0ff 0%, #3d7bff 55%, #1f4fd8 100%);
+    box-shadow: var(--shadow-lg);
+  }
+  .hero__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+    padding-top: 8%;
+  }
+  .hero__play-ico {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.7em;
+    padding-left: 0.12em;
+  }
+  .hero__now {
+    white-space: nowrap;
+    max-width: 100%;
+    align-self: flex-start;
+    font-weight: 500;
+  }
+  .hero__now-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .hero__badge {
+    position: absolute;
+    right: var(--gutter);
+    top: 4.5rem;
+    width: clamp(6.5rem, 14vw, 10rem);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+  }
+  .hero__badge svg {
+    position: absolute;
+    inset: 0;
+    animation: spin 18s linear infinite;
+  }
+  .hero__badge text {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: currentColor;
+  }
+  .hero__badge-core {
+    display: grid;
+    place-items: center;
+    width: 42%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--accent);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    box-shadow: var(--shadow-md);
+  }
+  @keyframes spin {
+    to { rotate: 360deg; }
+  }
+
+  .hero__scroll {
+    display: none;
+  }
+
+  /* ---------- HP: tata letak sendiri, bukan versi menyusut ---------- */
+  @media (max-width: 47.99rem) {
+    .hero__badge {
+      top: 8.5rem;
+      right: 0.75rem;
+      width: 5.75rem;
+    }
+    .hero__badge text {
+      font-size: 17px;
+    }
+    .hero__now {
+      font-size: 0.78rem;
+      align-self: center;
+    }
+    .hero__ring {
+      left: -20%;
+      top: 55%;
+    }
+    .hero__actions .btn {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+    .hero__social {
+      width: 100%;
+    }
+  }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 48rem) {
+    .hero__bottom {
+      grid-template-columns: 1fr auto;
+      gap: 2rem 4rem;
+    }
+    .hero__now {
+      position: absolute;
+      right: calc(var(--gutter) + 1rem);
+      top: 38%;
+    }
+    .hero__line--3 {
+      margin-left: 18%;
+    }
+  }
+  @media (min-width: 64rem) {
+    /* Layout editorial: paragraf di samping "Ulul", tombol di baris bawah */
+    .hero__inner {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-rows: auto 1fr auto;
+      column-gap: 1.5rem;
+    }
+    .hero__top,
+    .hero__name {
+      grid-column: 1 / -1;
+    }
+    .hero__name {
+      grid-row: 2;
+      align-self: center;
+    }
+    .hero__bottom {
+      display: contents;
+    }
+    .hero__lead {
+      grid-row: 2;
+      grid-column: 6 / span 4;
+      align-self: start;
+      margin-top: calc(var(--fs-mega) * 0.32);
+      position: relative;
+      z-index: 1;
+    }
+    /* Foto di kolom kanan; lencana & stiker menempel di atasnya */
+    .hero__photo {
+      grid-row: 2;
+      grid-column: 10 / span 3;
+      align-self: center;
+      justify-self: end;
+      width: 100%;
+      max-width: 19rem;
+      max-height: 58svh;
+      margin: 0;
+      z-index: 0;
+    }
+    .hero__badge,
+    .hero__now {
+      z-index: 2;
+    }
+    /* Stiker menempel di bawah foto, lencana kecil di pojok kanan atas foto (tidak menutupi wajah) */
+    .hero__now {
+      position: relative;
+      top: auto;
+      right: auto;
+      grid-row: 2;
+      grid-column: 9 / -1;
+      align-self: end;
+      justify-self: end;
+      margin-bottom: 0.5rem;
+    }
+    .hero__badge {
+      top: 3.25rem;
+      right: calc(var(--gutter) - 1.25rem);
+      width: 6.5rem;
+    }
+    .hero__actions {
+      grid-row: 3;
+      grid-column: 1 / -1;
+      justify-self: end;
+    }
+    .hero__line--2 {
+      padding-left: 1.4em;
+    }
+    .hero__scroll {
+      position: absolute;
+      left: var(--gutter);
+      bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: var(--fs-micro);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .hero__scroll-line {
+      width: 3rem;
+      height: 1px;
+      background: currentColor;
+      transform-origin: left;
+      animation: line 2.4s var(--ease-out) infinite;
+    }
+  }
+  @keyframes line {
+    0% { transform: scaleX(0); }
+    50% { transform: scaleX(1); transform-origin: left; }
+    51% { transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__blob,
+    .hero.hero--auto .hero__blob,
+    .hero.hero--auto .hero__fill,
+    .hero__badge svg {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,356 @@
+---
+import { site, type Lang } from '../content/site';
+import { useUi, localize, stripLang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const home = localize('/', lang);
+const here = stripLang(Astro.url.pathname);
+const links = [
+  { id: 'about', label: t.nav.about },
+  { id: 'work', label: t.nav.work },
+  { id: 'experience', label: t.nav.experience },
+  { id: 'skills', label: t.nav.skills },
+  { id: 'contact', label: t.nav.contact },
+];
+---
+
+<header class="nav" data-nav>
+  <nav class="nav__pill" aria-label="Main">
+    <a href={home} class="nav__logo" data-cursor="hover">
+      <span class="nav__logo-mark" aria-hidden="true">U<em>n</em>b</span>
+      <span class="sr-only">{site.name} — {t.nav.home}</span>
+    </a>
+
+    <ul class="nav__links" role="list">
+      {
+        links.map((l) => (
+          <li>
+            <a class="roll" href={`${home}#${l.id}`} data-nav-link={l.id}>
+              <span class="roll__inner" data-text={l.label}>{l.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="nav__tools">
+      <div class="lang" role="group" aria-label="Language">
+        {
+          (['en', 'id'] as Lang[]).map((l) => (
+            <a
+              href={localize(here, l)}
+              hreflang={l}
+              lang={l}
+              aria-current={l === lang ? 'true' : undefined}
+              class:list={['lang__opt', { 'is-active': l === lang }]}
+              data-lang-switch
+            >
+              {l.toUpperCase()}
+            </a>
+          ))
+        }
+        <span class="lang__thumb" data-lang={lang} aria-hidden="true"></span>
+      </div>
+
+      <button
+        class="theme"
+        type="button"
+        data-theme-toggle
+        data-label-light={t.nav.themeToLight}
+        data-label-dark={t.nav.themeToDark}
+        aria-label={t.nav.themeToDark}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <mask id="moon-mask">
+            <rect width="24" height="24" fill="#fff"></rect>
+            <circle class="theme__bite" cx="24" cy="4" r="7" fill="#000"></circle>
+          </mask>
+          <circle class="theme__core" cx="12" cy="12" r="5" mask="url(#moon-mask)" fill="currentColor"></circle>
+          <g class="theme__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 1.5v2M12 20.5v2M1.5 12h2M20.5 12h2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M4.6 19.4 6 18M18 6l1.4-1.4"></path>
+          </g>
+        </svg>
+      </button>
+
+      <button class="nav__menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span class="nav__menu-label" data-open={t.nav.menu} data-close={t.nav.close}>{t.nav.menu}</span>
+        <span class="nav__burger" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="menu" id="mobile-menu" data-menu hidden>
+    <ul role="list">
+      {
+        links.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a href={`${home}#${l.id}`} data-menu-link>
+              <span class="menu__num">0{i + 1}</span>
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="menu__foot">
+      <a href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    top: max(0.75rem, env(safe-area-inset-top));
+    left: 0;
+    right: 0;
+    z-index: 120;
+    display: flex;
+    justify-content: center;
+    padding-inline: 0.75rem;
+    pointer-events: none;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .nav.is-hidden {
+    transform: translateY(calc(-100% - 1.5rem));
+  }
+  .nav__pill {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 2vw, 2rem);
+    width: 100%;
+    max-width: 58rem;
+    padding: 0.4rem 0.4rem 0.4rem 1.1rem;
+    border-radius: var(--r-pill);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: var(--shadow-md), inset 0 0 0 1px var(--line);
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .nav__logo {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1;
+    display: inline-block;
+    transition: rotate 0.5s var(--ease-spring), scale 0.5s var(--ease-spring);
+  }
+  .nav__logo em {
+    color: var(--accent);
+  }
+  .nav__logo:hover {
+    rotate: -8deg;
+    scale: 1.08;
+  }
+  .nav__links {
+    display: none;
+    gap: 1.6rem;
+    margin-inline: auto;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .nav__links a {
+    padding-block: 0.2em;
+  }
+  .nav__links a.is-current .roll__inner {
+    color: var(--accent);
+  }
+  .nav__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  /* ---- toggle bahasa ---- */
+  .lang {
+    position: relative;
+    display: flex;
+    padding: 0.2rem;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .lang__opt {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.35rem;
+    border-radius: var(--r-pill);
+    color: var(--ink-2);
+    transition: color 0.35s;
+  }
+  .lang__opt.is-active {
+    color: var(--bg);
+  }
+  .lang__thumb {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 2.6rem;
+    height: 2.35rem;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    transition: transform 0.5s var(--ease-spring);
+  }
+  .lang__thumb[data-lang='id'] {
+    transform: translateX(100%);
+  }
+  .lang:hover .lang__opt:not(.is-active) {
+    color: var(--accent);
+  }
+
+  /* ---- toggle tema: matahari ↔ bulan ---- */
+  .theme {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    transition: background 0.3s, rotate 0.6s var(--ease-spring);
+  }
+  .theme:hover {
+    background: var(--bg-2);
+    rotate: 20deg;
+  }
+  .theme svg {
+    width: 1.3rem;
+    height: 1.3rem;
+    overflow: visible;
+  }
+  .theme__core,
+  .theme__bite,
+  .theme__rays {
+    transition: transform 0.6s var(--ease-spring), r 0.6s var(--ease-spring);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  .theme__rays {
+    transform-origin: 12px 12px;
+    transform-box: view-box;
+  }
+  :global([data-theme='dark']) .theme__core {
+    r: 8px;
+  }
+  :global([data-theme='dark']) .theme__bite {
+    transform: translate(-7px, 4px);
+  }
+  :global([data-theme='dark']) .theme__rays {
+    transform: scale(0) rotate(-90deg);
+  }
+
+  /* ---- tombol menu (HP) ---- */
+  .nav__menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    height: 2.75rem;
+    padding: 0 1rem 0 1.1rem;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+  .nav__burger {
+    display: grid;
+    gap: 5px;
+    width: 16px;
+  }
+  .nav__burger span {
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.5s var(--ease-out);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:first-child {
+    transform: translateY(3.25px) rotate(45deg);
+  }
+  .nav__menu-btn[aria-expanded='true'] .nav__burger span:last-child {
+    transform: translateY(-3.25px) rotate(-45deg);
+  }
+
+  /* ---- overlay menu ---- */
+  .menu {
+    pointer-events: auto;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 6rem var(--gutter) 2rem;
+    background: var(--bg-2);
+    clip-path: circle(0% at calc(100% - 3rem) 2.2rem);
+    transition: clip-path 0.7s var(--ease-out);
+  }
+  .menu.is-open {
+    clip-path: circle(150% at calc(100% - 3rem) 2.2rem);
+  }
+  .menu ul {
+    list-style: none;
+    padding: 0;
+  }
+  .menu li {
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .menu a[data-menu-link] {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    font-family: var(--font-serif);
+    font-size: clamp(2.6rem, 13vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    transform: translateY(100%);
+    transition: transform 0.7s var(--ease-out) calc(0.15s + var(--i) * 0.05s), color 0.3s;
+  }
+  .menu.is-open a[data-menu-link] {
+    transform: none;
+  }
+  .menu a[data-menu-link]:active,
+  .menu a[data-menu-link]:hover {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .menu__num {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--ink-3);
+  }
+  .menu__foot {
+    margin-top: 2rem;
+    font-size: var(--fs-small);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 60rem) {
+    .nav__links {
+      display: flex;
+    }
+    .nav__menu-btn,
+    .menu {
+      display: none;
+    }
+  }
+  @media (max-width: 22.5rem) {
+    .nav__menu-label {
+      display: none;
+    }
+    .nav__menu-btn {
+      padding: 0 0.95rem;
+    }
+  }
+</style>

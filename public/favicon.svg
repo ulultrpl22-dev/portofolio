@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg{fill:#0d1526}.u{fill:#e6ecf7}
+    @media (prefers-color-scheme: dark){.bg{fill:#e6ecf7}.u{fill:#0d1526}}
+  </style>
+  <path class="bg" d="M32 3c14 0 29 7 29 26 0 20-12 32-30 32C13 61 3 50 3 32 3 13 18 3 32 3Z"/>
+  <path class="u" d="M20 19h7v15c0 5 2 8 6 8s6-3 6-8V19h6v15c0 9-5 14-12 14s-13-5-13-14V19Z"/>
+  <circle cx="47" cy="47" r="6" fill="#3d7bff"/>
+</svg>

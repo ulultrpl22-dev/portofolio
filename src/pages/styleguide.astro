@@ -1,0 +1,155 @@
+---
+/** Halaman internal untuk melihat design system. Tidak diindeks & tidak masuk sitemap. */
+import Base from '../layouts/Base.astro';
+import Marquee from '../components/Marquee.astro';
+import Icon from '../components/Icon.astro';
+
+const colors = [
+  ['--bg', 'Latar'],
+  ['--bg-2', 'Layer'],
+  ['--surface', 'Kartu'],
+  ['--ink', 'Tinta'],
+  ['--ink-2', 'Teks isi'],
+  ['--ink-3', 'Meta'],
+  ['--accent', 'Kobalt (CTA)'],
+  ['--accent-deco', 'Biru dekor'],
+  ['--accent-soft', 'Biru pucat'],
+];
+---
+
+<Base lang="id" title="Styleguide — Ulul Nurona Bhakti" noindex>
+  <div class="sg container">
+    <header class="sg__head">
+      <p class="eyebrow">Design system</p>
+      <h1 class="display">Midnight <em>Blueprint</em></h1>
+      <p class="lead">Toggle tema di navbar untuk melihat versi terang/gelap. Semua token ada di <code>src/styles/tokens.css</code>.</p>
+    </header>
+
+    <section>
+      <h2 class="sg__label">Warna</h2>
+      <div class="sg__swatches">
+        {
+          colors.map(([v, name]) => (
+            <figure class="sg__swatch">
+              <span style={`background: var(${v})`} />
+              <figcaption>
+                <strong>{name}</strong>
+                <code>{v}</code>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sg__label">Tipografi</h2>
+      <p class="sg__type-mega serif">Aa <em>Gg</em></p>
+      <p class="display">Display — <em>Fraunces</em></p>
+      <p class="serif" style="font-size: var(--fs-h2)">Heading 2 untuk judul</p>
+      <p class="serif" style="font-size: var(--fs-h3)">Heading 3 untuk judul kartu proyek</p>
+      <p class="lead">Lead — General Sans 1.125–1.375rem. Dipakai untuk kalimat pembuka section.</p>
+      <p style="max-width: 60ch">
+        Body — General Sans 17px, line-height 1.6. Teks isi yang nyaman dibaca lama, dengan kontras 8.3:1 di mode terang dan
+        9.2:1 di mode gelap.
+      </p>
+      <p class="eyebrow">Eyebrow / label kecil</p>
+    </section>
+
+    <section>
+      <h2 class="sg__label">Tombol & link</h2>
+      <div class="sg__row">
+        <a href="#" class="btn btn--accent" data-magnetic>Primary <Icon name="arrow" class="btn__icon" /></a>
+        <a href="#" class="btn" data-magnetic>Default <Icon name="arrow" class="btn__icon" /></a>
+        <a href="#" class="btn btn--ghost" data-icon="down" data-magnetic>Ghost <Icon name="download" class="btn__icon" /></a>
+        <a href="#" class="icon-btn" aria-label="GitHub" data-magnetic><Icon name="github" /></a>
+        <a href="#" class="roll"><span class="roll__inner" data-text="Link berguling">Link berguling</span></a>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sg__label">Chip & stiker</h2>
+      <div class="sg__row">
+        <span class="chip">Laravel</span>
+        <span class="chip">React</span>
+        <span class="chip">MySQL</span>
+        <span class="sticker" style="--tilt:-6deg">Fresh & shipping ✦</span>
+        <span class="sticker sticker--paper" style="--tilt:4deg">Lulusan POLJAM</span>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sg__label">Kedalaman</h2>
+      <div class="sg__row">
+        <div class="sg__card" style="box-shadow: var(--shadow-sm)">shadow-sm</div>
+        <div class="sg__card" style="box-shadow: var(--shadow-md)">shadow-md</div>
+        <div class="sg__card" style="box-shadow: var(--shadow-lg)">shadow-lg</div>
+      </div>
+    </section>
+  </div>
+  <Marquee items={['Marquee', 'pemisah section', 'ikut arah scroll']} tone="accent" tilt={2} />
+  <div style="height: 20vh"></div>
+</Base>
+
+<style>
+  .sg {
+    display: grid;
+    gap: 5rem;
+    padding-block: 9rem 6rem;
+  }
+  .sg__head {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .sg__label {
+    margin-bottom: 1.5rem;
+    font-size: var(--fs-micro);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  section {
+    display: grid;
+    gap: 1rem;
+  }
+  .sg__swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: 1rem;
+  }
+  .sg__swatch span {
+    display: block;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--r-md);
+    box-shadow: inset 0 0 0 1px var(--line), var(--shadow-sm);
+  }
+  .sg__swatch figcaption {
+    display: grid;
+    margin-top: 0.5rem;
+    font-size: var(--fs-small);
+  }
+  code {
+    font-size: 0.85em;
+    color: var(--ink-3);
+  }
+  .sg__type-mega {
+    font-size: var(--fs-mega);
+  }
+  .sg__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+  .sg__card {
+    display: grid;
+    place-items: center;
+    width: 11rem;
+    aspect-ratio: 1;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    font-size: var(--fs-small);
+    color: var(--ink-2);
+  }
+</style>

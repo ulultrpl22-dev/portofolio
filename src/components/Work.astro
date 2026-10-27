@@ -1,0 +1,304 @@
+---
+import { projects, type Lang } from '../content/site';
+import { tr, useUi, localize } from '../i18n';
+import { asset } from '../lib/images';
+import SectionHead from './SectionHead.astro';
+import DeviceFrame from './DeviceFrame.astro';
+import Icon from './Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const list = projects.filter((p) => p.featured);
+const slugTag = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+// Filter hanya untuk teknologi yang dipakai di ≥ 2 proyek (supaya tidak jadi deretan tombol panjang)
+const tagCount = list.flatMap((p) => p.tags).reduce<Record<string, number>>((m, t) => ((m[t] = (m[t] ?? 0) + 1), m), {});
+const tags = Object.keys(tagCount).filter((t) => tagCount[t] >= 2);
+// Kartu lebar: proyek pertama, dan proyek terakhir bila tersisa sendirian di barisnya
+const isWide = (i: number) => i === 0 || (i === list.length - 1 && (list.length - 1) % 2 === 1);
+---
+
+<section class="work" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <SectionHead num="02" label={t.sections.work} title={t.work.title} id="work-title" intro={t.work.intro} align="split" />
+
+    <div class="filter" data-stagger role="group" aria-label={t.work.filterLabel} data-filter>
+      <button type="button" class="filter__btn" aria-pressed="true" data-filter-tag="*">
+        {t.work.all} <sup>{list.length}</sup>
+      </button>
+      {
+        tags.map((tag) => (
+          <button type="button" class="filter__btn" aria-pressed="false" data-filter-tag={slugTag(tag)}>
+            {tag}
+          </button>
+        ))
+      }
+    </div>
+    <p class="sr-only" aria-live="polite" data-filter-status data-template={t.work.showing}></p>
+
+    <ol class="work__list" data-stagger role="list">
+      {
+        list.map((p, i) => (
+          <li class:list={['work-item', { 'work-item--wide': isWide(i) }]} data-tags={p.tags.map(slugTag).join(' ')} data-work-item>
+            <a href={localize(`/work/${p.slug}`, lang)} class="work-item__link" data-cursor-label={t.work.view}>
+              <div class="work-item__media">
+                <span class="work-item__shape" aria-hidden="true" />
+                <div class="work-item__device" transition:name={`media-${p.slug}`}>
+                  <DeviceFrame
+                    frame={p.frame}
+                    image={asset(p.cover)}
+                    imageMobile={asset(p.coverMobile)}
+                    alt={tr(p.title, lang)}
+                    mock={p.mock}
+                    slides={p.frame === 'phone' ? [] : p.gallery.map((g) => asset(g.src)).filter((x): x is NonNullable<typeof x> => !!x)}
+                    url={p.links.demo?.replace(/^https?:\/\//, '') ?? `${p.slug}.app`}
+                  />
+                </div>
+              </div>
+
+              <div class="work-item__info">
+                <p class="work-item__meta">
+                  <span class="work-item__num">{String(i + 1).padStart(2, '0')}</span>
+                  <span>{tr(p.client, lang)}</span>
+                  {!p.year.startsWith('[') && <span aria-hidden="true">·</span>}
+                  {!p.year.startsWith('[') && <span>{p.year}</span>}
+                </p>
+                <h3 class="work-item__title serif" transition:name={`title-${p.slug}`}>
+                  {tr(p.title, lang)}
+                </h3>
+                <p class="work-item__summary">{tr(p.summary, lang)}</p>
+                <ul class="work-item__tags" role="list">
+                  {p.tags.map((tag) => (
+                    <li class="chip">{tag}</li>
+                  ))}
+                </ul>
+                <span class="work-item__cta">
+                  {t.work.readCase}
+                  <Icon name="arrow" class="work-item__arrow" />
+                </span>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .work {
+    padding-block: var(--section-y);
+  }
+
+  /* ---- filter ---- */
+  .filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  }
+  /* HP: satu baris yang bisa digeser, bukan tumpukan tombol */
+  @media (max-width: 47.99rem) {
+    .filter {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin-inline: calc(var(--gutter, 1rem) * -1);
+      padding-inline: var(--gutter, 1rem);
+      scrollbar-width: none;
+    }
+    .filter::-webkit-scrollbar {
+      display: none;
+    }
+    .filter__btn {
+      flex: none;
+    }
+  }
+  .filter__btn {
+    position: relative;
+    padding: 0.6em 1.15em;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-2);
+    transition: background 0.35s var(--ease-out), color 0.35s, box-shadow 0.35s, scale 0.3s var(--ease-spring);
+  }
+  .filter__btn sup {
+    font-size: 0.7em;
+    margin-left: 0.15em;
+  }
+  .filter__btn:hover {
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .filter__btn:active {
+    scale: 0.94;
+  }
+  .filter__btn[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  /* ---- daftar: grid kartu (proyek pertama = sorotan lebar) ---- */
+  .work__list {
+    display: grid;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    padding: 0;
+    list-style: none;
+  }
+  .work-item.is-hidden {
+    display: none;
+  }
+  .work-item__link {
+    --rx: 0deg;
+    --ry: 0deg;
+    display: grid;
+    height: 100%;
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-md), inset 0 0 0 1px var(--line);
+    overflow: hidden;
+    transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition: transform 0.4s var(--ease-out), box-shadow 0.4s;
+  }
+  .work-item__link:hover {
+    transition-duration: 0.15s, 0.4s;
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px color-mix(in oklab, var(--accent) 45%, var(--line));
+  }
+  .work-item__media {
+    position: relative;
+    padding: clamp(1.25rem, 3vw, 2.25rem) clamp(1.25rem, 3vw, 2.25rem) 0;
+    overflow: hidden;
+  }
+  .work-item__shape {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at var(--gx, 70%) var(--gy, 20%), color-mix(in oklab, var(--accent) 30%, transparent), transparent 60%),
+      var(--bg-2);
+    transition: background 0.3s;
+  }
+  .work-item__device {
+    position: relative;
+    translate: 0 6%;
+    transition: translate 0.6s var(--ease-out);
+  }
+  /* HP di kartu biasa: setinggi mockup browser di kartu sebelahnya, bukan selebar kartu */
+  .work-item:not(.work-item--wide) .work-item__device :global(.device--phone) {
+    width: min(48%, 13.5rem);
+  }
+
+  .work-item__info {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+  .work-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--fs-small);
+    color: var(--ink-3);
+  }
+  .work-item__num {
+    margin-right: 0.35rem;
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--accent);
+  }
+  .work-item__title {
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    transition: text-shadow 0.5s var(--ease-out);
+  }
+  .work-item__summary {
+    max-width: 52ch;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+  .work-item__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+  }
+  .work-item__tags .chip {
+    padding: 0.35em 0.85em;
+    font-size: var(--fs-micro);
+  }
+  .work-item__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .work-item__cta :global(.work-item__arrow) {
+    width: 1.1em;
+    height: 1.1em;
+    transition: translate 0.5s var(--ease-spring), rotate 0.5s var(--ease-spring);
+  }
+
+  /* ---- hover: mockup naik, screenshot panjang "scroll", panah berputar ---- */
+  .work-item__link:hover .work-item__device,
+  .work-item__link:focus-visible .work-item__device {
+    translate: 0 1%;
+  }
+  .work-item__link:hover :global(.screen__img) {
+    object-position: bottom;
+  }
+  .work-item__link:hover :global(.mock__inner) {
+    transform: scale(1.06) translateY(-3%);
+  }
+  .work-item__link:hover .work-item__title {
+    text-shadow: 0.05em 0.035em 0 color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+  .work-item__link:hover .work-item__cta :global(.work-item__arrow) {
+    translate: 3px -3px;
+    rotate: 45deg;
+  }
+  .work-item__link:focus-visible {
+    outline-offset: 0.5rem;
+  }
+
+  @media (min-width: 48rem) {
+    .work__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .work-item--wide {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 64rem) {
+    .work-item--wide .work-item__link {
+      grid-template-columns: 7fr 5fr;
+    }
+    .work-item--wide .work-item__media {
+      padding-bottom: clamp(1.25rem, 3vw, 2.25rem);
+      display: grid;
+      align-items: center;
+    }
+    .work-item--wide .work-item__device {
+      translate: 0;
+    }
+    .work-item--wide .work-item__info {
+      align-content: center;
+      padding: clamp(2rem, 4vw, 3.5rem);
+    }
+    .work-item--wide .work-item__title {
+      font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work-item__link {
+      transform: none;
+    }
+  }
+</style>

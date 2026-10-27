@@ -1,0 +1,262 @@
+---
+import { site, type Lang } from '../content/site';
+import { useUi } from '../i18n';
+import Icon from './Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const c = t.contact;
+const [user, domain] = site.email.split('@');
+---
+
+<section class="contact" id="contact" aria-labelledby="contact-title">
+  <span class="contact__glow" aria-hidden="true"></span>
+  <div class="container contact__inner">
+    <p class="contact__label" data-reveal="fade"><span>(07)</span> {t.sections.contact}</p>
+    <h2 class="contact__title" id="contact-title" data-reveal="lines" set:html={c.title} />
+    <p class="lead contact__lead" data-reveal="lines">{c.lead}</p>
+
+    <div class="contact__mail">
+      <a href={`mailto:${site.email}`} class="contact__email" data-magnetic="0.25" data-cursor-label="✉">
+        <span>{user}</span><span class="contact__at">@</span><span>{domain}</span>
+      </a>
+      <button type="button" class="contact__copy" data-copy={site.email} data-copied={c.copied} data-label={c.copy} aria-live="polite">
+        {c.copy}
+      </button>
+    </div>
+
+    <div class="contact__actions" data-stagger>
+      <a href={`mailto:${site.email}`} class="btn btn--accent" data-magnetic data-cursor="hover">
+        <Icon name="mail" class="btn__icon" />
+        {c.whatsapp}
+      </a>
+      <a href={site.links.linkedin} target="_blank" rel="noopener" class="btn btn--ghost" data-magnetic data-cursor="hover">
+        <Icon name="linkedin" class="btn__icon" /> LinkedIn
+      </a>
+      {site.links.github && (
+        <a href={site.links.github} target="_blank" rel="noopener" class="btn btn--ghost" data-magnetic data-cursor="hover">
+          <Icon name="github" class="btn__icon" /> GitHub
+        </a>
+      )}
+      <a href={site.links.cv} download class="btn btn--ghost" data-icon="down" data-magnetic data-cursor="hover">
+        {t.hero.ctaCv}
+        <Icon name="download" class="btn__icon" />
+      </a>
+    </div>
+
+    {
+      site.web3formsKey && (
+        <form class="form" action="https://api.web3forms.com/submit" method="POST" data-contact-form data-sending={c.sending} data-sent={c.sent} data-error={c.error}>
+          <h3 class="form__title serif">{c.formTitle}</h3>
+          <input type="hidden" name="access_key" value={site.web3formsKey} />
+          <input type="hidden" name="subject" value={`Portfolio — ${site.name}`} />
+          <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" autocomplete="off" />
+          <label class="field">
+            <span>{c.name}</span>
+            <input name="name" required autocomplete="name" />
+          </label>
+          <label class="field">
+            <span>{c.email}</span>
+            <input name="email" type="email" required autocomplete="email" />
+          </label>
+          <label class="field field--full">
+            <span>{c.message}</span>
+            <textarea name="message" rows="4" required />
+          </label>
+          <div class="form__foot">
+            <button type="submit" class="btn btn--accent" data-magnetic>
+              {c.send}
+              <Icon name="arrow" class="btn__icon" />
+            </button>
+            <p class="form__status" role="status" data-form-status />
+          </div>
+        </form>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .contact {
+    position: relative;
+    padding-block: var(--section-y) clamp(4rem, 8vw, 6rem);
+    overflow: clip;
+    isolation: isolate;
+  }
+  .contact__glow {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 40%;
+    width: min(70rem, 140vw);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in oklab, var(--accent-deco) 28%, transparent), transparent 62%);
+  }
+  .contact__inner {
+    display: grid;
+    justify-items: center;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    text-align: center;
+  }
+  .contact__label {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .contact__label span {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    letter-spacing: 0;
+    color: var(--accent);
+  }
+  .contact__title {
+    font-family: var(--font-serif);
+    font-size: clamp(4rem, 17vw, 14rem);
+    font-weight: 400;
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    font-variation-settings: 'SOFT' 50, 'opsz' 144;
+  }
+  .contact__title :global(em) {
+    font-style: italic;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 144;
+    color: var(--accent);
+  }
+  .contact__lead {
+    max-width: 40ch;
+  }
+
+  .contact__mail {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .contact__email {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-family: var(--font-serif);
+    font-size: clamp(1.6rem, 5.5vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    padding: 0.2em 0.5em 0.3em;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
+    transition: background 0.4s var(--ease-out), color 0.4s;
+    word-break: break-word;
+  }
+  .contact__at {
+    font-style: italic;
+    color: var(--accent);
+    transition: rotate 0.6s var(--ease-spring);
+    display: inline-block;
+  }
+  .contact__email:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .contact__email:hover .contact__at {
+    rotate: 360deg;
+  }
+  .contact__copy {
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 0.3em;
+    padding: 0.4rem 0.6rem;
+    transition: color 0.3s, text-decoration-color 0.3s;
+  }
+  .contact__copy:hover,
+  .contact__copy.is-done {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+  }
+
+  /* ---- form opsional ---- */
+  .form {
+    display: grid;
+    gap: 1rem;
+    width: min(100%, 44rem);
+    margin-top: 2.5rem;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line);
+    text-align: left;
+  }
+  .form__title {
+    font-size: var(--fs-h3);
+    font-weight: 400;
+  }
+  .field {
+    display: grid;
+    gap: 0.4rem;
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .field input,
+  .field textarea {
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--ink);
+    padding: 0.85rem 1rem;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: box-shadow 0.3s;
+    resize: vertical;
+  }
+  .field input:focus-visible,
+  .field textarea:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .form__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+  .form__status {
+    font-size: var(--fs-small);
+    color: var(--ink-2);
+  }
+  @media (min-width: 48rem) {
+    .form {
+      grid-template-columns: 1fr 1fr;
+    }
+    .form__title,
+    .field--full,
+    .form__foot {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .contact__glow {
+      animation: none;
+    }
+  }
+</style>

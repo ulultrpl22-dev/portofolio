@@ -1,0 +1,79 @@
+---
+import { site, type Lang } from '../content/site';
+import { useUi } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const updated = new Date(`${site.lastUpdated}T00:00:00`).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <p class="footer__clock">
+      <span class="footer__pulse" aria-hidden="true"></span>
+      {t.footer.localTime}:
+      <time data-clock data-tz={site.timezone} data-tz-label={site.timezoneLabel} data-lang={lang}>--:--</time>
+    </p>
+    <p>{t.footer.updated}: <time datetime={site.lastUpdated}>{updated}</time></p>
+    <p class="footer__built">{t.footer.built}</p>
+    <p>© {year} {site.name}</p>
+    <a href="#main" class="footer__top roll" data-top>
+      <span class="roll__inner" data-text={t.footer.top}>{t.footer.top}</span> ↑
+    </a>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-small);
+    color: var(--ink-3);
+  }
+  .footer__inner {
+    display: grid;
+    gap: 0.6rem;
+    padding-block: 2rem calc(2rem + env(safe-area-inset-bottom));
+  }
+  .footer__clock {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-2);
+  }
+  .footer__clock time {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .footer__pulse {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% { opacity: 0.25; }
+  }
+  .footer__top {
+    justify-self: start;
+    color: var(--ink);
+    font-weight: 500;
+    gap: 0.4rem;
+  }
+  @media (min-width: 64rem) {
+    .footer__inner {
+      grid-template-columns: auto auto 1fr auto auto;
+      align-items: center;
+      gap: 2.5rem;
+    }
+    .footer__built {
+      justify-self: center;
+    }
+  }
+</style>

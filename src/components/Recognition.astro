@@ -1,0 +1,503 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { certificates, organisations, type Lang } from '../content/site';
+import { tr, useUi } from '../i18n';
+import { asset } from '../lib/images';
+import SectionHead from './SectionHead.astro';
+import Icon from './Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useUi(lang);
+const r = t.recognition;
+
+// Sorotan dulu, lalu tahun terbaru
+const sorted = [...certificates].sort((a, b) => Number(!!b.star) - Number(!!a.star) || parseInt(b.year) - parseInt(a.year));
+const items = await Promise.all(
+  sorted.map(async (c) => {
+    const src = asset(c.img);
+    const full = src ? await getImage({ src, width: Math.min(1600, src.width), format: 'webp', quality: 82 }) : undefined;
+    return { ...c, src, full: full?.src };
+  }),
+);
+const cats = [
+  { key: '*', label: r.all, n: items.length },
+  { key: 'award', label: r.awards, n: items.filter((c) => c.cat === 'award').length },
+  { key: 'cert', label: r.certs, n: items.filter((c) => c.cat === 'cert').length },
+  { key: 'event', label: r.events, n: items.filter((c) => c.cat === 'event').length },
+];
+const catLabel = { award: r.awards, cert: r.certs, event: r.events };
+---
+
+<section class="recog" id="recognition" aria-labelledby="recog-title" data-recog>
+  <div class="container">
+    <SectionHead num="05" label={t.sections.recognition} title={r.title} id="recog-title" intro={r.intro} align="split" />
+
+    <div class="recog__tabs" data-stagger role="group" aria-label={t.sections.recognition} data-recog-tabs>
+      {
+        cats.map((c, i) => (
+          <button type="button" class="recog__tab" aria-pressed={i === 0 ? 'true' : 'false'} data-cat={c.key}>
+            {c.label} <sup>{c.n}</sup>
+          </button>
+        ))
+      }
+    </div>
+
+    <ul class="certs" role="list" data-certs data-stagger="flip">
+      {
+        items.map((c) =>
+          c.src ? (
+            <li class="cert" data-cat={c.cat}>
+              <button
+                type="button"
+                class="cert__card"
+                data-full={c.full}
+                data-title={tr(c.title, lang)}
+                data-by={`${tr(c.by, lang)} · ${c.year}`}
+                aria-label={`${r.open}: ${tr(c.title, lang)}`}
+              >
+                <span class="cert__img">
+                  <Image src={c.src} alt="" widths={[320, 480, 720]} sizes="(min-width: 64rem) 23vw, (min-width: 40rem) 45vw, 46vw" loading="lazy" />
+                  <span class="cert__glare" aria-hidden="true" />
+                  <span class="cert__zoom" aria-hidden="true"><Icon name="arrow" /></span>
+                </span>
+                <span class="cert__meta">
+                  <span class="cert__tag">
+                    {c.star && <span class="cert__star" aria-hidden="true">★</span>}
+                    {catLabel[c.cat]} · {c.year}
+                  </span>
+                  <span class="cert__title">{tr(c.title, lang)}</span>
+                </span>
+              </button>
+            </li>
+          ) : null,
+        )
+      }
+    </ul>
+
+    <div class="orgs" data-rise>
+      <p class="orgs__label">{r.orgs}</p>
+      <ul class="orgs__list" role="list" data-stagger>
+        {
+          organisations.map((o) => (
+            <li class="org">
+              <span class="org__title">{tr(o.title, lang)}</span>
+              <span class="org__by">
+                {tr(o.by, lang)}
+                {o.year && ` · ${o.year}`}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <dialog class="lightbox" data-lightbox aria-label={r.open}>
+    <figure class="lightbox__fig">
+      <img class="lightbox__img" alt="" data-lb-img />
+      <figcaption class="lightbox__cap">
+        <strong data-lb-title></strong>
+        <span data-lb-by></span>
+      </figcaption>
+    </figure>
+    <button type="button" class="lightbox__btn lightbox__btn--close" data-lb-close aria-label={r.close}>✕</button>
+    <button type="button" class="lightbox__btn lightbox__btn--prev" data-lb-prev aria-label={r.prev}>←</button>
+    <button type="button" class="lightbox__btn lightbox__btn--next" data-lb-next aria-label={r.next}>→</button>
+  </dialog>
+</section>
+
+<script>
+  function initRecognition() {
+    const root = document.querySelector<HTMLElement>('[data-recog]');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = '1';
+
+    const tabs = root.querySelector<HTMLElement>('[data-recog-tabs]')!;
+    const list = root.querySelector<HTMLElement>('[data-certs]')!;
+    const items = [...list.querySelectorAll<HTMLElement>('.cert')];
+    let cat = '*';
+
+    const apply = () => {
+      items.forEach((it) => {
+        it.hidden = !(cat === '*' || it.dataset.cat === cat);
+      });
+    };
+    apply();
+
+    tabs.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cat]');
+      if (!btn) return;
+      tabs.querySelectorAll('[data-cat]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      cat = btn.dataset.cat ?? '*';
+      list.classList.remove('is-swap');
+      void list.offsetWidth; // restart animasi masuk
+      list.classList.add('is-swap');
+      apply();
+    });
+
+    // Tilt 3D + kilau mengikuti pointer (hanya mouse; CSS transform saja → murah)
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      list.addEventListener('pointermove', (e) => {
+        const card = (e.target as HTMLElement).closest<HTMLElement>('.cert__card');
+        if (!card) return;
+        const b = card.getBoundingClientRect();
+        const x = (e.clientX - b.left) / b.width;
+        const y = (e.clientY - b.top) / b.height;
+        card.style.setProperty('--rx', `${(0.5 - y) * 10}deg`);
+        card.style.setProperty('--ry', `${(x - 0.5) * 12}deg`);
+        card.style.setProperty('--gx', `${x * 100}%`);
+        card.style.setProperty('--gy', `${y * 100}%`);
+      });
+      list.addEventListener('pointerout', (e) => {
+        const card = (e.target as HTMLElement).closest<HTMLElement>('.cert__card');
+        if (card && !card.contains(e.relatedTarget as Node)) {
+          card.style.removeProperty('--rx');
+          card.style.removeProperty('--ry');
+        }
+      });
+    }
+
+    // Lightbox
+    const dlg = root.querySelector<HTMLDialogElement>('[data-lightbox]')!;
+    const img = dlg.querySelector<HTMLImageElement>('[data-lb-img]')!;
+    const title = dlg.querySelector<HTMLElement>('[data-lb-title]')!;
+    const by = dlg.querySelector<HTMLElement>('[data-lb-by]')!;
+    let current: HTMLButtonElement | null = null;
+
+    const visibleCards = () => items.filter((it) => !it.hidden).map((it) => it.querySelector<HTMLButtonElement>('.cert__card')!);
+    const show = (card: HTMLButtonElement) => {
+      current = card;
+      img.src = card.dataset.full ?? '';
+      img.alt = card.dataset.title ?? '';
+      title.textContent = card.dataset.title ?? '';
+      by.textContent = card.dataset.by ?? '';
+    };
+    const step = (d: number) => {
+      const cards = visibleCards();
+      if (!current || !cards.length) return;
+      const i = cards.indexOf(current);
+      show(cards[(i + d + cards.length) % cards.length]);
+    };
+
+    list.addEventListener('click', (e) => {
+      const card = (e.target as HTMLElement).closest<HTMLButtonElement>('.cert__card');
+      if (!card) return;
+      show(card);
+      dlg.showModal();
+    });
+    dlg.querySelector('[data-lb-close]')!.addEventListener('click', () => dlg.close());
+    dlg.querySelector('[data-lb-prev]')!.addEventListener('click', () => step(-1));
+    dlg.querySelector('[data-lb-next]')!.addEventListener('click', () => step(1));
+    dlg.addEventListener('click', (e) => {
+      if (e.target === dlg) dlg.close(); // klik area gelap
+    });
+    dlg.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
+    });
+    dlg.addEventListener('close', () => current?.focus());
+  }
+
+  // Jalankan langsung juga: di mode dev skrip bisa termuat setelah event page-load lewat
+  initRecognition();
+  document.addEventListener('astro:page-load', initRecognition);
+</script>
+
+<style>
+  .recog {
+    padding-block: var(--section-y);
+  }
+
+  /* ---- tab kategori ---- */
+  .recog__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  }
+  .recog__tab {
+    padding: 0.6em 1.15em;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-2);
+    transition: background 0.3s var(--ease-out), color 0.3s, box-shadow 0.3s, scale 0.3s var(--ease-spring);
+  }
+  .recog__tab sup {
+    font-size: 0.7em;
+    margin-left: 0.15em;
+  }
+  .recog__tab:hover {
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .recog__tab:active {
+    scale: 0.94;
+  }
+  .recog__tab[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  /* ---- galeri masonry ---- */
+  .certs {
+    columns: 2;
+    column-gap: clamp(0.75rem, 2vw, 1.25rem);
+    padding: 0;
+  }
+  .cert {
+    break-inside: avoid;
+    margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+  }
+  .cert[hidden] {
+    display: none;
+  }
+  .certs.is-swap .cert {
+    animation: cert-in 0.5s var(--ease-out) both;
+  }
+  @keyframes cert-in {
+    from { opacity: 0; translate: 0 14px; }
+  }
+  .cert__card {
+    --rx: 0deg;
+    --ry: 0deg;
+    display: grid;
+    width: 100%;
+    text-align: left;
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-md), inset 0 0 0 1px var(--line);
+    overflow: hidden;
+    transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition: transform 0.35s var(--ease-out), box-shadow 0.35s;
+  }
+  .cert__card:hover {
+    transition-duration: 0.12s, 0.35s;
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px color-mix(in oklab, var(--accent) 50%, var(--line));
+  }
+  .cert__img {
+    position: relative;
+    display: block;
+    background: #fff;
+    overflow: hidden;
+  }
+  .cert__img :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: scale 0.6s var(--ease-out);
+  }
+  .cert__card:hover .cert__img :global(img) {
+    scale: 1.04;
+  }
+  .cert__glare {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgb(255 255 255 / 0.45), transparent 55%);
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .cert__card:hover .cert__glare {
+    opacity: 1;
+  }
+  .cert__zoom {
+    position: absolute;
+    right: 0.6rem;
+    bottom: 0.6rem;
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    rotate: -45deg;
+    scale: 0.6;
+    opacity: 0;
+    transition: scale 0.4s var(--ease-spring), opacity 0.3s;
+  }
+  .cert__zoom :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .cert__card:hover .cert__zoom,
+  .cert__card:focus-visible .cert__zoom {
+    scale: 1;
+    opacity: 1;
+  }
+  .cert__meta {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.8rem 0.9rem 1rem;
+  }
+  .cert__tag {
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .cert__star {
+    margin-right: 0.3em;
+  }
+  .cert__title {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .cert__by {
+    font-size: var(--fs-micro);
+    color: var(--ink-3);
+  }
+
+  /* ---- organisasi lain ---- */
+  .orgs {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding-top: clamp(1.5rem, 3vw, 2rem);
+    border-top: 1px solid var(--line);
+  }
+  .orgs__label {
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .orgs__list {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0;
+  }
+  .org {
+    display: grid;
+    gap: 0.2rem;
+    padding: 1rem 1.1rem;
+    border-radius: var(--r-md);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: box-shadow 0.3s, translate 0.4s var(--ease-spring);
+  }
+  .org:hover {
+    translate: 0 -3px;
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .org__title {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .org__by {
+    font-size: var(--fs-small);
+    color: var(--ink-3);
+  }
+
+  /* ---- lightbox ---- */
+  .lightbox {
+    width: min(100vw - 2rem, 70rem);
+    max-width: none;
+    max-height: calc(100svh - 2rem);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    overflow: visible;
+  }
+  .lightbox::backdrop {
+    background: rgb(5 10 20 / 0.86);
+  }
+  .lightbox[open] {
+    animation: lb-in 0.35s var(--ease-out);
+  }
+  @keyframes lb-in {
+    from { opacity: 0; scale: 0.96; }
+  }
+  .lightbox__fig {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: center;
+  }
+  .lightbox__img {
+    max-width: 100%;
+    max-height: calc(100svh - 9rem);
+    width: auto;
+    height: auto;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.5);
+  }
+  .lightbox__cap {
+    display: grid;
+    gap: 0.2rem;
+    text-align: center;
+    font-size: var(--fs-small);
+  }
+  .lightbox__cap span {
+    opacity: 0.7;
+  }
+  .lightbox__btn {
+    position: fixed;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.12);
+    color: #fff;
+    font-size: 1.1rem;
+    transition: background 0.2s, scale 0.3s var(--ease-spring);
+  }
+  .lightbox__btn:hover {
+    background: rgb(255 255 255 / 0.25);
+    scale: 1.08;
+  }
+  .lightbox__btn--close {
+    top: 1rem;
+    right: 1rem;
+  }
+  .lightbox__btn--prev,
+  .lightbox__btn--next {
+    top: 50%;
+    translate: 0 -50%;
+  }
+  .lightbox__btn--prev {
+    left: 1rem;
+  }
+  .lightbox__btn--next {
+    right: 1rem;
+  }
+
+  @media (min-width: 48rem) {
+    .certs {
+      columns: 3;
+    }
+    .orgs {
+      grid-template-columns: 12rem 1fr;
+      align-items: start;
+    }
+    .orgs__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .orgs__label {
+      padding-top: 1rem;
+    }
+  }
+  @media (min-width: 72rem) {
+    .certs {
+      columns: 4;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cert__card {
+      transform: none;
+    }
+    .certs.is-swap .cert,
+    .lightbox[open] {
+      animation: none;
+    }
+  }
+</style>

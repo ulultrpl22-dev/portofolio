@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:F;src:url('../public/fonts/fraunces-full.woff2')}
+@font-face{font-family:F;font-style:italic;src:url('../public/fonts/fraunces-full-italic.woff2')}
+@font-face{font-family:G;src:url('../public/fonts/general-sans-500.woff2')}
+html,body{margin:0}
+body{width:1200px;height:630px;background:#0a1120;color:#e6ecf7;font-family:G;position:relative;overflow:hidden}
+.glow{position:absolute;width:760px;height:760px;right:-160px;top:-120px;border-radius:50%;background:radial-gradient(circle,rgba(61,123,255,.55),rgba(61,123,255,0) 65%)}
+.card{position:absolute;right:70px;top:70px;width:300px;height:380px;border-radius:40px;background:#16213a;transform:rotate(8deg);box-shadow:0 40px 80px rgba(0,0,0,.5)}
+.name{position:absolute;left:70px;top:110px;font-family:F;font-size:132px;line-height:.86;letter-spacing:-.045em;font-variation-settings:'SOFT' 30,'opsz' 144}
+.name em{display:block;padding-left:.55em;color:#6ea8ff;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 144;font-weight:300}
+.name b{font-weight:600;display:block;padding-left:.12em;color:transparent;-webkit-text-stroke:2px #e6ecf7}
+.meta{position:absolute;left:70px;bottom:62px;display:flex;gap:18px;align-items:center;font-size:26px}
+.pill{padding:12px 24px;border-radius:999px;background:#6ea8ff;color:#0a1120;font-weight:600}
+.sub{color:#a9b6ce}
+.top{position:absolute;left:70px;top:58px;font-size:18px;letter-spacing:.16em;color:#7e8ca8;text-transform:uppercase}
+.top:before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;background:#6ea8ff;margin-right:12px}
+</style></head>
+<body><div class="glow"></div><div class="card"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:F;font-style:italic;font-size:170px;letter-spacing:-.06em;font-variation-settings:'SOFT' 100,'WONK' 1;color:#e6ecf7">U<span style="color:#6ea8ff">n</span>b</span></div>
+<div class="top" id="top">Portfolio — 2026</div>
+<div class="name">Ulul<em>Nurona</em><b>Bhakti</b></div>
+<div class="meta"><span class="pill">Software Engineer</span><span class="sub" id="sub">Laravel · React · MySQL</span></div>
+</body></html>

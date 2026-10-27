@@ -1,0 +1,55 @@
+---
+interface Props { num: string; label: string; title: string; id?: string; intro?: string; align?: 'left' | 'split' }
+const { num, label, title, id, intro, align = 'left' } = Astro.props;
+---
+
+<header class:list={['shead', `shead--${align}`]}>
+  <p class="shead__label" data-reveal="fade">
+    <span class="shead__num">({num})</span>
+    <span>{label}</span>
+  </p>
+  <h2 class="display shead__title" id={id} data-reveal="lines" set:html={title} />
+  {intro && <p class="lead shead__intro" data-reveal="lines">{intro}</p>}
+</header>
+
+<style>
+  .shead {
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.5rem);
+    margin-bottom: clamp(3rem, 7vw, 6rem);
+  }
+  .shead__label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .shead__num {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--accent);
+  }
+  .shead__title {
+    max-width: 14ch;
+  }
+  @media (min-width: 64rem) {
+    .shead--split {
+      grid-template-columns: 1fr minmax(0, 26rem);
+      align-items: end;
+      column-gap: 4rem;
+    }
+    .shead--split .shead__label {
+      grid-column: 1 / -1;
+    }
+    .shead--split .shead__intro {
+      margin-bottom: 0.6em;
+    }
+  }
+</style>

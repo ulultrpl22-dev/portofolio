@@ -1,0 +1,134 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import { site, about, type Lang } from '../content/site';
+import { getImage } from 'astro:assets';
+import { asset } from '../lib/images';
+import { useUi, localize, stripLang } from '../i18n';
+import Loader from '../components/Loader.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
+  showLoader?: boolean;
+  /** Tanpa navbar & footer (mis. halaman presentasi layar penuh). */
+  bare?: boolean;
+}
+
+const { lang, title, description, image, noindex = false, showLoader = false, bare = false } = Astro.props;
+const t = useUi(lang);
+const pageTitle = title ?? t.meta.title;
+const pageDesc = description ?? t.meta.description;
+const neutral = stripLang(Astro.url.pathname);
+const canonical = new URL(localize(neutral, lang), site.url).href;
+const altEn = new URL(localize(neutral, 'en'), site.url).href;
+const altId = new URL(localize(neutral, 'id'), site.url).href;
+const ogImage = new URL(image ?? `/og/og-${lang}.png`, site.url).href;
+const photoMeta = asset(about.photo);
+const photo = photoMeta ? await getImage({ src: photoMeta, width: 600, format: 'jpg' }) : undefined;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: site.role,
+  url: site.url,
+  image: new URL(photo?.src ?? `/og/og-${lang}.png`, site.url).href,
+  email: `mailto:${site.email}`,
+  worksFor: { '@type': 'Organization', name: 'PT Aguna Satya Mulya', url: 'https://agunasatyamulya.co.id' },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Politeknik Jambi' },
+  sameAs: [site.links.github, site.links.linkedin].filter(Boolean),
+  knowsLanguage: ['id', 'en'],
+};
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDesc} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en" href={altEn} />
+    <link rel="alternate" hreflang="id" href={altId} />
+    <link rel="alternate" hreflang="x-default" href={altEn} />
+    {noindex && <meta name="robots" content="noindex" />}
+
+    <meta name="theme-color" content="#eef2f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a1120" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDesc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={lang === 'id' ? 'id_ID' : 'en_US'} />
+    <meta property="og:locale:alternate" content={lang === 'id' ? 'en_US' : 'id_ID'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDesc} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Font teks isi di-preload (kecil). Fraunces memakai fallback ber-metrik mirip → tanpa layout shift -->
+    <link rel="preload" href="/fonts/general-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Tema & loader ditentukan sebelum render pertama (tanpa kedip) -->
+    <script is:inline data-astro-rerun>
+      (() => {
+        const d = document.documentElement;
+        let theme;
+        try { theme = localStorage.getItem('theme'); } catch {}
+        // Default: gelap ("Midnight"). Pilihan manual user disimpan di localStorage.
+        if (theme !== 'light' && theme !== 'dark') theme = 'dark';
+        d.dataset.theme = theme;
+        d.classList.add('js');
+      })();
+    </script>
+    {
+      showLoader && (
+        <script is:inline>
+          (() => {
+            const d = document.documentElement;
+            const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let seen = false;
+            try { seen = !!sessionStorage.getItem('unb-seen'); sessionStorage.setItem('unb-seen', '1'); } catch {}
+            d.dataset.loader = seen || reduce ? 'skip' : 'show';
+          })();
+        </script>
+      )
+    }
+    <ClientRouter fallback="swap" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.nav.skip}</a>
+    {showLoader && <Loader lang={lang} />}
+    <div class="cursor" aria-hidden="true" transition:persist="cursor">
+      <span class="cursor__dot"></span>
+      <span class="cursor__label"></span>
+    </div>
+    {!bare && <div class="scroll-progress" aria-hidden="true" />}
+    {!bare && <Navbar lang={lang} />}
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    {!bare && <Footer lang={lang} />}
+    <script>
+      import '../scripts/main';
+    </script>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+---
+import { site, type Lang } from '../content/site';
+import { useUi } from '../i18n';
+interface Props { lang: Lang }
+const t = useUi(Astro.props.lang);
+const letters = site.initials.split('');
+---
+
+<!--
+  Loader murni CSS (± 1,2 dtk). Hanya tampil pada kunjungan pertama per sesi,
+  tidak tampil jika prefers-reduced-motion. Klik/tombol apa pun untuk melewati.
+-->
+<div class="loader" role="status" aria-label={t.loader}>
+  <div class="loader__inner" aria-hidden="true">
+    <p class="loader__mark">
+      {letters.map((l, i) => <span style={`--i:${i}`}>{l}</span>)}
+    </p>
+    <span class="loader__bar"><span></span></span>
+  </div>
+</div>
+
+<style>
+  .loader {
+    display: none;
+  }
+  :global(html[data-loader='show']) .loader {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    inset: 0;
+    z-index: 180;
+    background: #0a1120;
+    color: #e6ecf7;
+    border-radius: 0 0 50% 50% / 0 0 0 0;
+    animation: loader-out 0.45s var(--ease-out) 0.75s forwards;
+  }
+  :global(html[data-loader='show'].loader-done) .loader {
+    animation: loader-out 0.45s var(--ease-out) forwards;
+  }
+  .loader__inner {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+  }
+  .loader__mark {
+    display: flex;
+    overflow: hidden;
+    font-family: var(--font-serif);
+    font-size: clamp(4rem, 18vw, 9rem);
+    font-style: italic;
+    line-height: 1;
+    padding: 0.05em 0.1em 0.12em;
+  }
+  .loader__mark span {
+    display: block;
+    transform: translateY(110%);
+    font-variation-settings: 'SOFT' 0, 'WONK' 1;
+    animation:
+      letter-in 0.5s var(--ease-out) calc(0.07s * var(--i)) forwards,
+      soften 0.5s var(--ease-out) 0.35s forwards;
+  }
+  .loader__mark span:nth-child(2) {
+    color: #6ea8ff;
+  }
+  .loader__bar {
+    width: 7rem;
+    height: 2px;
+    background: rgb(230 236 247 / 0.18);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loader__bar span {
+    display: block;
+    height: 100%;
+    background: #6ea8ff;
+    transform-origin: left;
+    transform: scaleX(0);
+    animation: bar 0.65s var(--ease-out) 0.05s forwards;
+  }
+  @keyframes letter-in {
+    to { transform: none; }
+  }
+  @keyframes soften {
+    to { font-variation-settings: 'SOFT' 100, 'WONK' 1; }
+  }
+  @keyframes bar {
+    to { transform: scaleX(1); }
+  }
+  @keyframes loader-out {
+    0% { transform: none; border-radius: 0 0 50% 50% / 0 0 0 0; }
+    100% { transform: translateY(-105%); border-radius: 0 0 50% 50% / 0 0 18vh 18vh; visibility: hidden; }
+  }
+</style>

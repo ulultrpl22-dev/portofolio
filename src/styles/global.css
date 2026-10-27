@@ -1,0 +1,501 @@
+@import './tokens.css';
+
+/* ---------- Reset ringan ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--bg);
+  overflow-x: clip;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+body {
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+}
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* ---------- Tekstur grain (statis — murah untuk GPU) ---------- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.08 0 0 0 0 0.15 0 0 0 1.2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Mode gelap: noise terang langsung, tanpa blend-mode (blend layar penuh = repaint mahal saat scroll) */
+:root[data-theme='dark'] body::after {
+  opacity: calc(var(--grain-opacity) * 0.6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.92 0 0 0 0 0.95 0 0 0 0 1 0 0 0 1.2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Utilitas ---------- */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+/* Mask animasi per baris: beri ruang untuk huruf italic & descender agar tidak terpotong */
+.reveal-line-mask {
+  padding: 0 0.12em 0.14em;
+  margin: 0 -0.12em -0.14em;
+}
+.container {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 200;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--bg);
+  transform: translateY(-200%);
+  transition: transform 0.3s var(--ease-out);
+}
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ---------- Tipografi ---------- */
+.serif {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  font-variation-settings: 'SOFT' 50, 'WONK' 0;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+.display {
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  font-variation-settings: 'SOFT' 50, 'WONK' 0;
+}
+.display em,
+.serif em {
+  font-style: italic;
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  color: var(--accent);
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.eyebrow::before {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 34ch;
+}
+
+/* ---------- Tombol ---------- */
+.btn {
+  --btn-bg: var(--ink);
+  --btn-fg: var(--bg);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 1.05em 1.6em;
+  min-height: 3.25rem;
+  border-radius: var(--r-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.4s var(--ease-out), color 0.4s var(--ease-out), scale 0.2s var(--ease-out);
+}
+.btn--accent {
+  --btn-bg: var(--accent);
+  --btn-fg: var(--on-accent);
+}
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+/* Isi warna naik dari bawah saat hover */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--ink);
+  transform: translateY(101%);
+  transition: transform 0.5s var(--ease-out);
+}
+.btn--ghost::before {
+  background: var(--ink);
+}
+.btn:hover::before,
+.btn:focus-visible::before {
+  transform: none;
+}
+.btn--accent:hover,
+.btn--accent:focus-visible,
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  color: var(--bg);
+}
+.btn:not(.btn--accent):not(.btn--ghost)::before {
+  background: var(--accent);
+}
+.btn:not(.btn--accent):not(.btn--ghost):hover {
+  color: var(--on-accent);
+}
+.btn:active {
+  scale: 0.97;
+}
+.btn__icon {
+  width: 1.1em;
+  height: 1.1em;
+  transition: transform 0.5s var(--ease-spring);
+}
+.btn:hover .btn__icon {
+  transform: translate(3px, -3px) rotate(-8deg);
+}
+.btn[data-icon='down']:hover .btn__icon {
+  transform: translateY(3px);
+}
+
+/* Link dengan teks yang "berguling" ke atas saat hover */
+.roll {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.roll__inner {
+  display: block;
+  transition: transform 0.45s var(--ease-out);
+}
+.roll__inner::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  font-style: italic;
+  font-family: var(--font-serif);
+  color: var(--accent);
+}
+.roll:hover .roll__inner,
+.roll:focus-visible .roll__inner {
+  transform: translateY(-100%);
+}
+
+/* Ikon bulat (GitHub, LinkedIn) */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: background 0.35s var(--ease-out), color 0.35s, box-shadow 0.35s, rotate 0.5s var(--ease-spring), scale 0.5s var(--ease-spring);
+}
+.icon-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.icon-btn:hover {
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: none;
+  rotate: -8deg;
+  scale: 1.06;
+}
+
+/* ---------- Chip & stiker ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.55em 1.1em;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+.sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  padding: 0.6em 1.15em;
+  border-radius: var(--r-pill);
+  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 92%, white), var(--accent) 55%, color-mix(in oklab, var(--accent) 70%, #1f4fd8));
+  color: var(--on-accent);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  rotate: var(--tilt, -4deg);
+  box-shadow:
+    0 10px 30px -8px color-mix(in oklab, var(--accent) 70%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  animation: sticker-float 5s ease-in-out infinite alternate;
+  transition: rotate 0.5s var(--ease-spring), scale 0.5s var(--ease-spring);
+}
+.sticker::before {
+  content: '';
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+  box-shadow: 0 0 0 0.25em color-mix(in oklab, currentColor 20%, transparent);
+}
+.sticker:hover {
+  rotate: 0deg;
+  scale: 1.06;
+}
+/* Varian kaca gelap dengan titik aksen */
+.sticker--paper {
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  color: var(--ink);
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 0 0 1px color-mix(in oklab, var(--accent) 35%, var(--line));
+}
+.sticker--paper::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 0.25em color-mix(in oklab, var(--accent) 22%, transparent), 0 0 12px var(--accent);
+}
+@keyframes sticker-float {
+  to { translate: 0 -6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticker { animation: none; }
+}
+
+/* ---------- Kursor kustom (hanya pointer presisi) ---------- */
+.cursor {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor .cursor {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 150;
+    width: 88px;
+    height: 88px;
+    margin: -44px 0 0 -44px;
+    pointer-events: none;
+    mix-blend-mode: difference;
+  }
+  html.has-cursor.cursor-label .cursor {
+    mix-blend-mode: normal;
+  }
+  .cursor__dot {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #eef2f8;
+    transform: scale(0.15);
+    transition: transform 0.5s var(--ease-out), background-color 0.3s;
+  }
+  html.cursor-hover .cursor__dot {
+    transform: scale(0.5);
+  }
+  html.cursor-down .cursor__dot {
+    transform: scale(0.1);
+  }
+  html.cursor-label .cursor__dot {
+    transform: scale(1);
+    background: var(--accent);
+  }
+  .cursor__label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: var(--on-accent);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.3s, transform 0.5s var(--ease-out);
+  }
+  html.cursor-label .cursor__label {
+    opacity: 1;
+    transform: none;
+  }
+  html.has-cursor,
+  html.has-cursor a,
+  html.has-cursor button {
+    cursor: none;
+  }
+}
+
+/* ---------- Transisi tema (View Transitions) ---------- */
+html.theme-switching,
+html.theme-switching * {
+  transition: none !important;
+}
+html.theme-switching::view-transition-old(root),
+html.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- Gerak dikurangi ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Animasi masuk saat scroll (lihat scripts/scroll-in.ts) ----------
+   Disembunyikan HANYA setelah skrip aktif (html.si) → kalau JS gagal, konten tetap tampil.
+   Hanya transform + opacity → dikerjakan GPU, tidak memicu layout ulang. */
+html.si [data-stagger],
+html.si [data-rise] {
+  perspective: 1100px;
+}
+/* Masuk dengan sedikit miring 3D lalu tegak */
+html.si [data-stagger],
+html.si [data-rise] {
+  perspective: 1100px;
+}
+/* 3D: elemen "berdiri" dari posisi miring lalu tegak (transform + opacity saja → GPU) */
+html.si [data-stagger] > *,
+html.si [data-rise] {
+  opacity: 0;
+  transform: translate3d(0, 2.5rem, -40px) rotateX(38deg);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.6s var(--ease-out),
+    transform 1s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+  transition-delay: calc(var(--i, 0) * 65ms);
+}
+html.si [data-stagger].is-in > *,
+html.si [data-rise].is-in {
+  opacity: 1;
+  transform: none;
+}
+html.si [data-stagger].is-in > *:hover {
+  transition-delay: 0s;
+}
+
+/* ---------- Garis progres scroll (murni CSS, scroll-driven animation) ---------- */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 2px;
+  z-index: 120;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--accent), var(--accent-deco));
+  transform-origin: left;
+  transform: scaleX(0);
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes scroll-progress {
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.si [data-stagger] > *,
+  html.si [data-rise] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .scroll-progress { display: none; }
+}
