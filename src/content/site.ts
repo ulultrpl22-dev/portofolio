@@ -463,6 +463,59 @@ export const projects: Project[] = [
     links: {},
   },
   {
+    slug: 'myrep-closing',
+    featured: true,
+    year: '2026',
+    tags: ['Laravel', 'React', 'MySQL', 'Claude AI'],
+    frame: 'browser',
+    cover: 'projects/myrep/dashboard.png',
+    mock: 'dashboard',
+    title: { en: 'MyRep Document Closing', id: 'MyRep Document Closing' },
+    client: { en: 'PT Aguna Satya Mulya · FTTH EMR project', id: 'PT Aguna Satya Mulya · Proyek FTTH EMR' },
+    summary: {
+      en: 'A document-closing app for FTTH clusters — CW, OPM, RFS, and FAC paperwork, field photos, redline BoQ, and payment terms — so a cluster can be invoiced without chasing files.',
+      id: 'Aplikasi closing dokumen untuk cluster FTTH — berkas CW, OPM, RFS, dan FAC, foto lapangan, redline BoQ, sampai termin pembayaran — agar cluster bisa ditagih tanpa mengejar berkas.',
+    },
+    problem: {
+      en: 'Each cluster needs dozens of documents and 150–200 field photos before it can be invoiced. They arrived through chat in pieces, so the office could not tell which cluster was ready and payments aged for months.',
+      id: 'Setiap cluster butuh puluhan dokumen dan 150–200 foto lapangan sebelum bisa ditagih. Semuanya datang sepotong-sepotong lewat chat, sehingga kantor sulit tahu cluster mana yang siap dan pembayaran tertunda berbulan-bulan.',
+    },
+    role: { en: 'Analyst and full-stack developer — requirements with the project team, data model, app, and VPS deployment.', id: 'Analis dan full-stack developer — kebutuhan bersama tim proyek, model data, aplikasi, dan deploy ke VPS.' },
+    process: [
+      {
+        en: 'Mapped the closing checklist per stage (DP + CW, OPM, RFS, FAC) and turned it into a completeness score per cluster, with an “action needed” queue on the dashboard.',
+        id: 'Memetakan checklist closing per tahap (DP + CW, OPM, RFS, FAC) menjadi skor kelengkapan per cluster, dengan antrean “perlu tindakan” di dashboard.',
+      },
+      {
+        en: 'Built the redline flow: field supervisors submit actual BoQ quantities, the office reconciles them against BA Opname and OTDR before accepting.',
+        id: 'Membangun alur redline: waspang mengirim volume BoQ aktual, kantor mencocokkannya dengan BA Opname dan OTDR sebelum menerima.',
+      },
+      {
+        en: 'Generated ATP and OPM forms as PDFs in the browser, and used Claude’s vision model to read dBm values from power-meter photos.',
+        id: 'Membuat form ATP dan OPM dalam bentuk PDF langsung di browser, serta memakai model vision Claude untuk membaca angka dBm dari foto power meter.',
+      },
+      {
+        en: 'Moved it from a single-file prototype to Laravel 12 + MySQL on a VPS with PIN login, server-side access rules, and an audit trail.',
+        id: 'Memindahkan prototipe satu file ke Laravel 12 + MySQL di VPS dengan login PIN, aturan akses di sisi server, dan audit trail.',
+      },
+    ],
+    solution: {
+      en: 'A React front end on a Laravel API. Field supervisors only see and edit the clusters assigned to them — enforced on the server — while the office reviews documents, redlines, and the finance queue for each payment term.',
+      id: 'Front end React di atas API Laravel. Waspang hanya bisa melihat dan mengubah cluster yang di-assign kepadanya — dicek di server — sementara kantor meninjau dokumen, redline, dan antrean finance untuk setiap termin.',
+    },
+    stack: ['Laravel 12', 'React', 'Vite', 'MySQL', 'pdf-lib', 'SheetJS', 'Claude API'],
+    impact: [
+      { en: 'Every cluster shows how complete its paperwork is and what is still missing, so invoices can go out as soon as a stage is done.', id: 'Setiap cluster menampilkan seberapa lengkap berkasnya dan apa yang masih kurang, sehingga tagihan bisa dikirim begitu satu tahap selesai.' },
+      { en: 'Photos and files stay on the company’s own server, readable only by signed-in users with the right access.', id: 'Foto dan file tersimpan di server perusahaan sendiri, hanya bisa dibuka pengguna yang login dan berhak.' },
+    ],
+    gallery: [
+      { src: 'projects/myrep/dashboard.png', caption: { en: 'Dashboard: completeness per cluster and action queue', id: 'Dashboard: kelengkapan per cluster dan antrean tindakan' } },
+      { src: 'projects/myrep/cluster.png', caption: { en: 'Cluster page: documents per stage (CW, OPM, RFS, FAC)', id: 'Halaman cluster: dokumen per tahap (CW, OPM, RFS, FAC)' } },
+      { src: 'projects/myrep/redline.png', caption: { en: 'Redline BoQ reconciled against BA Opname and OTDR', id: 'Redline BoQ dicocokkan dengan BA Opname dan OTDR' } },
+    ],
+    links: {},
+  },
+  {
     slug: 'ai-scheduler',
     featured: true,
     year: '2026',
@@ -665,6 +718,10 @@ export const experience = [
       {
         en: 'Lead implementation: user onboarding, demo accounts, data migration from spreadsheets, and ongoing support after go-live.',
         id: 'Memimpin implementasi: onboarding user, akun demo, migrasi data dari spreadsheet, dan pendampingan setelah go-live.',
+      },
+      {
+        en: 'Built MyRep Document Closing (Laravel 12, React, MySQL) to track CW/OPM/RFS/FAC paperwork, field photos, and redline BoQ per FTTH cluster until it can be invoiced.',
+        id: 'Membangun MyRep Document Closing (Laravel 12, React, MySQL) untuk memantau berkas CW/OPM/RFS/FAC, foto lapangan, dan redline BoQ per cluster FTTH sampai siap ditagih.',
       },
       {
         en: 'Ship a companion field app (Waspang Mobile) so site supervisors report progress, BOQ, and material use straight into the ERP.',
